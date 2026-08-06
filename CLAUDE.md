@@ -18,7 +18,8 @@
 
 - React
 - TypeScript strict mode
-- Apps in Toss WebView SDK 2.x 계열
+- Apps in Toss WebView SDK 3.x 계열
+  (@apps-in-toss/web-framework 3.0.2)
 - TDS 우선 사용
 - 서버 없음
 - 외부 DB 없음
