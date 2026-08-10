@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { App } from './App.tsx';
 
@@ -61,5 +61,93 @@ describe('최초 사용자 진입 흐름', () => {
     fireEvent.click(screen.getByRole('button', { name: '다음 측정' }));
     expect(screen.getByRole('heading', { name: '중심 감각' })).toBeInTheDocument();
     expect(screen.getByText('2 / 5')).toBeInTheDocument();
+  });
+
+  it('Center 완료 후 Balance Ready로 연결된다', () => {
+    let now = 0;
+    vi.spyOn(performance, 'now').mockImplementation(() => { now += 3000; return now; });
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: '하찮력 측정 시작' }));
+    fireEvent.click(screen.getByRole('button', { name: '측정 시작' }));
+    fireEvent.click(screen.getByRole('button', { name: '첫 번째 시간 감각 측정 시작 준비' }));
+    for (let trial = 0; trial < 3; trial += 1) {
+      fireEvent.click(screen.getByRole('button', { name: trial === 0 ? '시작하기' : '다음 측정' }));
+      fireEvent.click(screen.getByRole('button', { name: '지금!' }));
+    }
+    fireEvent.click(screen.getByRole('button', { name: '다음 측정' }));
+    for (let trial = 0; trial < 3; trial += 1) {
+      fireEvent.click(screen.getByRole('button', { name: trial === 0 ? '시작하기' : '다음 도형' }));
+      const area = screen.getByRole('application');
+      Object.defineProperty(area, 'getBoundingClientRect', { configurable: true, value: () => ({ left: 0, top: 0, width: 100, height: 100 }) });
+      fireEvent.pointerDown(area, { clientX: 50, clientY: 50 });
+    }
+    fireEvent.click(screen.getByRole('button', { name: '다음 측정' }));
+    expect(screen.getByRole('heading', { name: '균형 분배' })).toBeInTheDocument();
+    expect(screen.getByText('3 / 5')).toBeInTheDocument();
+  });
+
+  it('Balance 완료 후 Control placeholder로 연결된다', () => {
+    let now = 0;
+    vi.spyOn(performance, 'now').mockImplementation(() => { now += 3000; return now; });
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: '하찮력 측정 시작' }));
+    fireEvent.click(screen.getByRole('button', { name: '측정 시작' }));
+    fireEvent.click(screen.getByRole('button', { name: '첫 번째 시간 감각 측정 시작 준비' }));
+    for (let trial = 0; trial < 3; trial += 1) {
+      fireEvent.click(screen.getByRole('button', { name: trial === 0 ? '시작하기' : '다음 측정' }));
+      fireEvent.click(screen.getByRole('button', { name: '지금!' }));
+    }
+    fireEvent.click(screen.getByRole('button', { name: '다음 측정' }));
+    for (let trial = 0; trial < 3; trial += 1) {
+      fireEvent.click(screen.getByRole('button', { name: trial === 0 ? '시작하기' : '다음 도형' }));
+      const area = screen.getByRole('application');
+      Object.defineProperty(area, 'getBoundingClientRect', { configurable: true, value: () => ({ left: 0, top: 0, width: 100, height: 100 }) });
+      fireEvent.pointerDown(area, { clientX: 50, clientY: 50 });
+    }
+    fireEvent.click(screen.getByRole('button', { name: '다음 측정' }));
+    fireEvent.click(screen.getByRole('button', { name: '시작하기' }));
+    fireEvent.click(screen.getByRole('button', { name: '여기서 나누기' }));
+    fireEvent.click(screen.getByRole('button', { name: '다음 측정' }));
+    fireEvent.click(screen.getByRole('button', { name: '여기서 나누기' }));
+    fireEvent.click(screen.getByRole('button', { name: '다음 측정' }));
+
+    expect(screen.getByRole('heading', { name: '손가락 통제' })).toBeInTheDocument();
+    expect(screen.getByText('4 / 5')).toBeInTheDocument();
+    expect(screen.queryByText('검사 3 / 5')).not.toBeInTheDocument();
+    expect(screen.queryByText('균형 분배 검사는 다음 단계에서 연결됩니다.')).not.toBeInTheDocument();
+  });
+
+  it('Control 완료 후 Focus Ready로 연결된다', () => {
+    let now = 0;
+    const nowSpy = vi.spyOn(performance, 'now').mockImplementation(() => now);
+    const requestSpy = vi.spyOn(window, 'requestAnimationFrame').mockImplementation(() => 1);
+    render(<App initialScreen="control-assessment" />);
+    for (let trial = 0; trial < 3; trial += 1) {
+      fireEvent.click(screen.getByRole('button', { name: trial === 0 ? '시작하기' : '다음 측정' }));
+      now += 1000;
+      fireEvent.click(screen.getByRole('button', { name: '멈춰!' }));
+    }
+    fireEvent.click(screen.getByRole('button', { name: '다음 측정' }));
+    expect(screen.getByRole('heading', { name: '시각 집중' })).toBeInTheDocument();
+    expect(screen.getByText('5 / 5')).toBeInTheDocument();
+    nowSpy.mockRestore(); requestSpy.mockRestore();
+  });
+
+  it('Focus 완료 후 Basic Analysis placeholder로 연결된다', () => {
+    let now = 0;
+    const frames: FrameRequestCallback[] = [];
+    const nowSpy = vi.spyOn(performance, 'now').mockImplementation(() => now);
+    const requestSpy = vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => { frames.push(callback); return frames.length; });
+    render(<App initialScreen="focus-assessment" />);
+    const targetChoices = [2, 8, 11];
+    targetChoices.forEach((choice, index) => {
+      fireEvent.click(screen.getByRole('button', { name: index === 0 ? '시작하기' : '다음 측정' }));
+      act(() => { frames.shift()?.(0); frames.shift()?.(0); }); now += 1000;
+      fireEvent.click(screen.getByRole('button', { name: `선택지 ${choice}` }));
+    });
+    fireEvent.click(screen.getByRole('button', { name: '기본 분석 보기' }));
+    expect(screen.getByRole('heading', { name: '기본 분석 준비' })).toBeInTheDocument();
+    expect(screen.getByText('5개 측정을 모두 마쳤습니다.')).toBeInTheDocument();
+    nowSpy.mockRestore(); requestSpy.mockRestore();
   });
 });

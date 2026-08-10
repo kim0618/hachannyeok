@@ -4,11 +4,11 @@
 
 ## 1. Current Phase
 
-- 현재 단계: **7단계 — DAY 1 중심 인지 검사 구현 완료**
-- 다음 단계: **8단계 — DAY 1 균형 분배 검사 구현**
+- 현재 단계: **10단계 — DAY 1 시각 집중 검사 구현 완료, 코드 리뷰 대기**
+- 다음 단계: **10단계 독립 코드 리뷰**
 - `src/domain`에 문서의 calibration, math, raw union/runtime validation, completion, LocalDateKey/STATE, session/checkpoint, persisted schema/migration/idempotency/StoragePort 및 scoring engine 타입 경계를 구현함
 - Calibration/math/normalizer부터 baseline·daily·final score, stability, tendency, DAY 7 selector, profile, certification, final metric, Cross Insight, raw replay `deriveAnalysis`까지 구현함
-- 최초 사용자 홈/검사 안내/첫 시간 감각 행동 검사를 구현함. 나머지 DAY 1 검사, 한국어 결과 content table, Apps in Toss Storage adapter는 아직 구현하지 않음
+- 최초 사용자 홈/검사 안내와 DAY 1의 Time → Center → Balance → Control → Focus 행동 검사를 구현함. 실제 DAY 1 결과 orchestration, 한국어 결과 content table, Apps in Toss Storage adapter는 아직 구현하지 않음
 
 ## 2. Product Direction
 
@@ -191,3 +191,66 @@
 - fixed target 거부 경계, UI 생성 target, RUNNING/RESULT shape class와 접근성 설명 연결 회귀 테스트를 추가함
 - 전체 typecheck, lint, 16 files / 109 tests, build:web, build:ait, build 및 `git diff --check` 통과
 - 7단계를 종료하고 8단계 DAY 1 균형 분배 검사 구현으로 진행 가능
+
+## 16. 8단계 DAY 1 균형 분배 검사 구현 결과
+
+- Center 완료 CTA를 Balance Ready에 연결하고 READY → RUNNING → TRIAL RESULT → COMPLETE/INCOMPLETE 상태를 구현함
+- DAY 1 범위는 vertical/horizontal 2등분 각 1회로 제한하고 retry도 고정 순서로 순환함. 3등분은 구현하지 않음
+- 고정 비중앙 초기값 vertical 0.32/horizontal 0.68과 bounding rect 기반 순수 coordinate→ratio helper를 추가함
+- Pointer Events, pointer capture, drag 영역 `touch-action: none`, keyboard arrow fallback과 slider 접근성 정보를 적용함
+- 확정 CTA 시점에만 raw `BalanceTwoWayTrial`을 생성하고 synchronous guard로 중복 확정을 막음
+- `targetRatio === 0.5` runtime invariant를 회귀 테스트로 고정하고 domain completion validator의 target 2/minimum valid 2/max 5 및 orientation 구성을 재사용함
+- RUNNING background invalidation, RUNNING/시도 사이 날짜 변경, visibility/date race와 전체 reset을 구현함
+- 결과에는 사용자 선/정답 50% 점선을 색상 외 legend와 함께 표시하고, 완료 요약은 valid-only 평균 오차와 동률 vertical 우선 방향을 표시함
+- Storage persistence는 연결하지 않았으며 완료 CTA는 Control placeholder로 연결함
+- 전체 typecheck, lint, 19 files / 125 tests, build:web, build:ait, build 및 `git diff --check` 통과
+
+## 17. 8단계 독립 코드 리뷰 수정 및 종료
+
+- 독립 코드 리뷰 결과 Critical 0건, Major 3건, Minor 1건을 확인함
+- 비정상 rect와 pointer 좌표를 ratio 계산 전에 검증하고 `invalidGeometry` failure를 반환해 NaN/Infinity 또는 0/1 정상 ratio 위조를 차단함
+- geometry failure에서는 UI divider를 이동하지 않으며 정상 vertical/horizontal 좌표 변환과 zero/non-finite 경계를 회귀 테스트로 고정함
+- retry로 같은 orientation의 valid evidence가 여러 개 생겨도 orientation별 전체 valid absolute error 평균을 비교하고 동률은 vertical 우선으로 결정함
+- Balance 완료 후 `검사 4 / 5 · 손가락 통제` placeholder로 이동하도록 과거 Balance placeholder 문구를 수정함. Control 실제 검사는 구현하지 않음
+- retry 진행 표시는 `2 / 2` 반복 대신 `추가 측정 n`으로 구분함
+- keyboard ratio confirm, `targetRatio: 0.50001`, unknown orientation 거부와 Balance → Control placeholder 통합 회귀 테스트를 추가함
+- 전체 typecheck, lint, 19 files / 135 tests, build:web, build:ait, build 및 `git diff --check` 통과
+- 8단계를 종료하고 9단계 DAY 1 손가락 통제 검사 구현으로 진행 가능
+
+## 18. 9단계 DAY 1 손가락 통제 검사 구현 결과
+
+- Balance 완료 CTA를 Control Ready에 연결하고 READY → RUNNING → TRIAL RESULT → COMPLETE/INCOMPLETE 상태를 구현함
+- 미정이었던 DAY 1 Control 계약을 `leftToRight`, start 0.08, end 0.92와 `(speed, target)` 3개 config `(0.32, 0.40)`, `(0.40, 0.58)`, `(0.48, 0.68)`로 확정하고 SCORING_SPEC에 기록함
+- `speedNormalized`를 초당 normalized 이동 거리로 정의하고 monotonic clock 기반 순수 `positionAtElapsed`를 raw measurement source of truth로 사용함
+- requestAnimationFrame은 marker 시각 갱신에만 사용하며 stop 시 마지막 React state가 아니라 clock의 현재 시각으로 observedPosition을 다시 계산함
+- end 도달은 `insufficientObservation` invalid trial로 자동 종료하고 wrap/왕복/end valid 위조를 금지함
+- stop/end/visibility/date 경쟁을 synchronous active ref guard로 한 번만 확정하며 RAF를 trial 종료, background, date invalidation, reset, unmount에서 정리함
+- target 3/minimum valid 2/max 6과 retry config 순환을 domain completion validator로 적용하고 valid-only 평균 위치 오차/가장 정확했던 시도를 표시함
+- RUNNING에는 위치·속도·진행률 퍼센트나 근접 피드백을 노출하지 않고 실제 button `멈춰!`와 비-live track 설명을 제공함
+- Control evidence는 session memory only이며 Storage/score UI/surprise condition을 추가하지 않음
+- 완료 CTA는 `검사 5 / 5 · 시각 집중` placeholder로 연결하고 Focus 실제 검사는 구현하지 않음
+- 전체 typecheck, lint, 22 files / 152 tests, build:web, build:ait, build 및 `git diff --check` 통과
+
+## 19. 9단계 독립 코드 리뷰 수정 및 종료
+
+- 독립 코드 리뷰 결과 Critical 0건, Major 1건, Minor 0건을 확인함
+- exact end time에서 stop이 RAF보다 먼저 실행되면 end position이 valid evidence로 저장되던 경계 오류를 수정함
+- RAF과 STOP이 elapsed 기반 `hasReachedControlEnd` helper를 공통으로 사용해 floating point position 결과와 이벤트 순서에 따른 valid/invalid 불일치를 차단함
+- 3개 config 각각의 exact end 전 0.001ms, exact end, exact end 후 0.001ms helper 및 stop-first 경계 회귀 테스트를 추가함
+- 전체 typecheck, lint, 22 files / 167 tests, build:web, build:ait, build 및 `git diff --check`를 통과하고 9단계를 종료함
+- 10단계 DAY 1 시각 집중 검사 구현으로 진행 가능
+
+## 20. 10단계 DAY 1 시각 집중 검사 구현 결과
+
+- Control 완료 CTA를 Focus Ready에 연결하고 READY → RUNNING → TRIAL RESULT → COMPLETE/INCOMPLETE 상태를 구현함
+- DAY 1 Focus stimulus를 4×3 row-major grid, 12개 선택지, target 1개와 distractor 11개로 확정하고 SCORING_SPEC에 기록함
+- `circle/square` target index 1, `triangle/circle` index 7, `diamond/triangle` index 10의 3개 config와 attempt 4~6 deterministic cycle을 구현함
+- CSS/inline SVG의 동일 rendering component로 cue와 grid shape를 표시하고 target 전용 강조·animation·외부 asset을 사용하지 않음
+- config helper에서 item 12개, unique ID, target ID 일치, target 1개, distractor 11개와 shape set runtime invariant를 검증함
+- config render 뒤 double requestAnimationFrame을 통과한 monotonic `performance.now()` 시점부터 input을 활성화하며 stale activation과 활성화 전 tap을 차단함
+- 첫 선택에서 synchronous active guard를 잠그고 선택 ID, correctness, raw unrounded reactionTimeMs를 `FocusTrial`로 생성함. 오답도 RT를 포함한 valid evidence로 보존함
+- RUNNING/activation 중 background invalidation, RUNNING/시도 사이 날짜 변경 시 Focus assessment 전체 restart, visibility/date race와 RAF cleanup을 구현함
+- target 3/minimum valid 2/max 6 completion/retry를 기존 domain validator로 판정하고 valid 시도 정답 수와 correct-only 평균 RT를 표시함. 정답 0개는 `정답 기록 없음`으로 구분함
+- 52px 이상 동일 touch target, 정답을 노출하지 않는 `선택지 n` aria-label, 텍스트 정오답 결과와 focus-visible을 적용함
+- Focus 완료 CTA를 `기본 분석 준비` placeholder에 연결함. Storage persistence와 실제 score/profile/certification 결과는 추가하지 않음
+- 10단계 독립 코드 리뷰 대기

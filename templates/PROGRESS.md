@@ -2,9 +2,9 @@
 
 ## 현재 단계
 
-- 단계 번호: 7
-- 단계 이름: DAY 1 중심 인지 검사 구현
-- 상태: 구현 및 독립 코드 리뷰 수정 완료
+- 단계 번호: 10
+- 단계 이름: DAY 1 시각 집중 검사 구현
+- 상태: 구현 완료, 코드 리뷰 대기
 
 ## 완료
 
@@ -110,11 +110,48 @@
   - valid/invalid Center target `(0.5, 0.5)` runtime literal invariant 강화
   - 좌표 입력 영역의 `aria-describedby` 직접 연결 및 관련 회귀 테스트 추가
   - 수정 후 16 files / 109 tests 및 전체 빌드 통과
+- 8단계: DAY 1 균형 분배 검사 구현
+  - Balance READY/RUNNING/TRIAL RESULT/COMPLETE/INCOMPLETE 흐름과 Center 완료 연결
+  - vertical/horizontal 2등분 고정 순서와 retry 결정적 순환, 비중앙 초기값 0.32/0.68
+  - 순수 pointer coordinate→ratio helper, visual clamp, Pointer Events/capture와 keyboard fallback
+  - 확정 CTA 시 raw evidence 생성 및 중복 방지, targetRatio 0.5 runtime invariant 회귀
+  - background/date invalidation, visibility/date race와 assessment 전체 reset
+  - valid-only 평균 오차/더 정확한 방향 summary와 사용자 선/정답 선 legend
+  - session memory only, Control placeholder 연결, 3등분/Storage 미구현
+  - 독립 코드 리뷰 Critical 0건 / Major 3건 / Minor 1건
+  - zero/non-finite geometry의 ratio 위조를 명시적 `invalidGeometry` failure로 차단하고 UI divider 이동 방지
+  - retry orientation summary를 orientation별 전체 valid evidence 평균 비교로 수정, 동률 vertical 우선 유지
+  - Balance 완료 후 `검사 4 / 5 · 손가락 통제` placeholder로 연결하고 과거 Balance placeholder 문구 제거
+  - retry 진행 표시를 `추가 측정 n`으로 보완하고 keyboard/raw/runtime literal/unknown orientation/App 흐름 회귀 테스트 추가
+  - 수정 후 19 files / 135 tests 및 전체 빌드 통과
+- 9단계: DAY 1 손가락 통제 검사 구현
+  - Control READY/RUNNING/TRIAL RESULT/COMPLETE/INCOMPLETE 흐름과 Balance 완료 연결
+  - leftToRight, start 0.08/end 0.92, 3개 speed/target config 및 retry 결정적 순환 계약 확정
+  - monotonic clock과 순수 position 계산을 raw/visual 공통 source of truth로 사용, RAF는 visual-only
+  - end 도달 insufficientObservation invalid와 stop/end/background/date race 단일 확정
+  - target 3/minimum valid 2/max 6 completion, valid-only 평균 오차와 closest attempt summary
+  - 위치/속도/진행률 퍼센트·근접 cue·surprise condition 없이 접근 가능한 stop button/track 설명 적용
+  - session memory only, Focus placeholder 연결, Storage/Control Ability Score/Focus 실제 검사 미구현
+  - 22 files / 152 tests와 web/AIT/전체 build 및 `git diff --check` 통과
+  - 독립 코드 리뷰 Critical 0건 / Major 1건 / Minor 0건
+  - elapsed 기반 공통 end helper로 RAF/STOP 판정을 통일하고 exact end stop-first valid evidence 오류 수정
+  - 3개 config의 end 전/exact/후 helper 및 stop-first 경계 회귀 테스트 추가
+  - 수정 후 22 files / 167 tests와 web/AIT/전체 build 및 `git diff --check` 통과
+- 10단계: DAY 1 시각 집중 검사 구현
+  - 4×3 row-major grid, 12개 item, target 1/distractor 11의 결정적 Focus stimulus 계약 확정
+  - circle/square index 1, triangle/circle index 7, diamond/triangle index 10 config와 retry cycle
+  - inline SVG 공통 shape rendering, 동일 touch/visual treatment와 target cue
+  - double RAF 뒤 monotonic clock 활성화, 활성화 전 input 및 stale RAF 차단
+  - raw FocusTrial correctness/RT, 오답 valid evidence, synchronous duplicate selection guard
+  - background/date invalidation, assessment 전체 reset, completion/retry/incomplete
+  - valid 정답 수와 correct-only 평균 RT summary, 정답 기록 없음 상태
+  - Control → Focus → Basic Analysis placeholder App 흐름 연결
+  - Storage persistence, Ability Score UI, Profile/Certification 및 DAY 6 memory 미구현
 
 ## 현재 소스 상태
 
 - `src/domain/assessment`, `scoring`, `progression`, `session`, `storage`에 3단계 기반 계약 구현
-- 기존 React placeholder는 제거; 최초 사용자 홈/안내/첫 시간 감각 행동 검사와 중간 결과 UI 구현, 나머지 DAY 1 검사는 미구현
+- 최초 사용자 홈/안내와 Time → Center → Balance → Control → Focus 행동 검사/중간 결과 UI 및 기본 분석 placeholder 구현
 - 실제 scoring 콘텐츠 엔진과 Apps in Toss Storage adapter는 미구현
 - 패키지 및 설정 변경 없음
 
@@ -142,15 +179,15 @@
 
 ## 다음 작업
 
-### 8단계 DAY 1 균형 분배 검사 구현
+### 10단계 독립 코드 리뷰
 
-세 번째 DAY 1 검사인 균형 분배 검사를 기존 raw/completion/date 계약에 맞춰 구현한다.
+DAY 1 시각 집중 검사 구현의 측정 정확성, race, 모바일 레이아웃과 회귀를 독립 검수한다.
 
 ## 마지막 검증
 
 - `npm run typecheck`: 통과
 - `npm run lint`: 통과
-- `npm run test`: 16 files / 109 tests 통과
+- `npm run test`: 25 files / 188 tests 통과
 - `npm run build:web`, `npm run build:ait`, `npm run build`: 모두 통과
 - 새 dependency 및 금지된 UI/SDK adapter 변경 없음
 

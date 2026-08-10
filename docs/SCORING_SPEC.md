@@ -161,6 +161,10 @@ type FocusTrial = ValidFocusTrial | InvalidFocusTrial;
 
 `TimeTrial.signedErrorMs = observedDurationMs - targetDurationMs`, `absoluteErrorMs = abs(signedErrorMs)`로 정규화 전 근거를 만든다. control의 속도는 모든 사용자에게 동일한 고정 baseline profile을 사용한다. trial 구성과 최소 유효 수는 위 DAY 1 표의 값이며 balance는 vertical 1회와 horizontal 1회가 모두 유효해야 한다.
 
+DAY 1 Control은 모든 trial에서 `leftToRight`, `startPosition = 0.08`, `endPosition = 0.92`를 사용한다. `speedNormalized`는 1초당 이동하는 normalized track distance이며 `position = startPosition + (elapsedMs / 1000) * speedNormalized`로 계산한다. 고정 config는 `(speedNormalized, targetPosition)` 순서로 `(0.32, 0.40)`, `(0.40, 0.58)`, `(0.48, 0.68)`이며 attempt index에 따라 이 순서를 결정적으로 순환한다. marker가 0.92에 도달할 때까지 사용자가 멈추지 않으면 `insufficientObservation` invalid trial로 종료하며 wrap하거나 end position을 valid observation으로 저장하지 않는다.
+
+DAY 1 Focus는 4열×3행, 12개 선택지를 row-major 순서로 표시하며 target 1개와 distractor 11개로 고정한다. config는 `(stimulusId, target, distractor, target index)` 순서로 `focus-baseline-1/circle/square/1`, `focus-baseline-2/triangle/circle/7`, `focus-baseline-3/diamond/triangle/10`이며 attempt index에 따라 결정적으로 순환한다. item ID는 각 stimulus의 `item-01`부터 `item-12`까지이고 target index의 ID가 `correctTargetId`다. 선택한 item ID와 `correctTargetId`의 일치 여부가 `correct`이며 오답 선택도 reaction time을 포함한 valid trial이다. config render 뒤 requestAnimationFrame 두 번을 지난 시점의 monotonic clock으로 측정을 활성화하고 그 전 입력은 무시한다. 선택 timeout은 두지 않는다.
+
 valid trial에서는 target/observed position, ratio와 normalized speed가 finite 0..1이고 duration/RT가 finite non-negative여야 한다. Focus에서 `correct`는 `selectedTargetId === correctTargetId`와 일치해야 하며 correct trial의 `reactionTimeMs`는 finite non-negative number여야 한다. 선택이 없으면 `selectedTargetId`와 `reactionTimeMs`가 모두 null이고 `correct: false`다. completed trial의 `completedAtMs >= startedAtMs`여야 한다. DAY 1 time completion validator는 타입이 `number`여도 `condition === 'baseline'` 및 `targetDurationMs === 3000`을 runtime literal invariant로 검사한다.
 
 ## Normalized Evidence 계약

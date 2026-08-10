@@ -1,8 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { isAnyTrial, isNormalized } from './validation';
+import { isAnyTrial, isNormalized, validateTrial } from './validation';
 
 const base = { trialId: 't1', startedAtMs: 10, completedAtMs: 20 };
 describe('raw trial runtime validation', () => {
+  it('BalanceTwoWay targetRatio는 정확히 0.5만 허용한다', () => {
+    const base = { kind: 'balanceTwoWay', orientation: 'vertical', targetRatio: 0.5, observedRatio: 0.42, trialId: 'b', startedAtMs: 0, completedAtMs: 1, valid: true, invalidReason: null };
+    expect(validateTrial(base).ok).toBe(true);
+    expect(validateTrial({ ...base, targetRatio: 0.49 }).ok).toBe(false);
+    expect(validateTrial({ ...base, targetRatio: 0.50001 }).ok).toBe(false);
+    expect(validateTrial({ ...base, orientation: 'diagonal' }).ok).toBe(false);
+  });
   it('NaN, Infinity와 normalized 범위 밖을 clamp하지 않고 거부한다', () => { expect(isNormalized(Number.NaN)).toBe(false); expect(isNormalized(Infinity)).toBe(false); expect(isNormalized(1.01)).toBe(false); });
   it('DAY 1 time targetDuration 3000 literal을 강제한다', () => expect(isAnyTrial({ ...base, valid: true, invalidReason: null, kind: 'time', condition: 'baseline', targetDurationMs: 2999, observedDurationMs: 3000 })).toBe(false));
   it('DAY 1 center target 0.5, 0.5 literal을 valid와 invalid arm 모두에서 강제한다', () => {
@@ -22,6 +29,11 @@ describe('raw trial runtime validation', () => {
     expect(isAnyTrial({ ...invalidFocus, correct: false })).toBe(true);
     expect(isAnyTrial({ ...invalidFocus, correct: true })).toBe(true);
     expect(isAnyTrial({ ...invalidFocus, correct: 'yes' })).toBe(false);
+  });
+  it('선택한 valid incorrect Focus도 raw reactionTimeMs를 요구한다', () => {
+    const incorrect = { ...base, valid: true, invalidReason: null, kind: 'focus', condition: 'visualSearch', stimulusId: 's', correctTargetId: 'target', selectedTargetId: 'distractor', correct: false };
+    expect(isAnyTrial({ ...incorrect, reactionTimeMs: 12.25 })).toBe(true);
+    expect(isAnyTrial({ ...incorrect, reactionTimeMs: null })).toBe(false);
   });
   it('valid/invalid invariant를 위반한 payload를 거부한다', () => expect(isAnyTrial({ ...base, valid: true, invalidReason: 'interrupted', kind: 'time', condition: 'baseline', targetDurationMs: 3000, observedDurationMs: 3000 })).toBe(false));
   it('3등분 cut order를 강제한다', () => expect(isAnyTrial({ ...base, valid: true, invalidReason: null, kind: 'balanceThreeWay', cutPositions: [0.7, 0.3] })).toBe(false));

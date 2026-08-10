@@ -47,7 +47,7 @@ export function isAnyTrial(input: unknown): input is AnyTrial {
         && (!('correct' in input) || typeof input.correct === 'boolean');
       if (!isNullableString(input.selectedTargetId) || !(input.reactionTimeMs === null || isMilliseconds(input.reactionTimeMs)) || typeof input.correct !== 'boolean') return false;
       const correct = input.selectedTargetId === input.correctTargetId;
-      return input.correct === correct && (correct ? isMilliseconds(input.reactionTimeMs) : input.selectedTargetId === null ? input.reactionTimeMs === null : true);
+      return input.correct === correct && (input.selectedTargetId === null ? input.reactionTimeMs === null : isMilliseconds(input.reactionTimeMs));
     }
     case 'timeCondition':
       return oneOf(input.condition, ['plain', 'distracted']) && input.targetDurationMs === 3000 && (input.valid ? isMilliseconds(input.observedDurationMs) : observationAbsent('observedDurationMs'));
