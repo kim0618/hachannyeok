@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { App } from './App.tsx';
 
 describe('최초 사용자 진입 흐름', () => {
@@ -45,5 +45,21 @@ describe('최초 사용자 진입 흐름', () => {
 
     expect(screen.getByRole('heading', { name: /시작하면 시간이/ })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '시작하기' })).toBeInTheDocument();
+  });
+
+  it('Home → Intro → Time 완료 후 Center Ready로 연결된다', () => {
+    let now = 0;
+    vi.spyOn(performance, 'now').mockImplementation(() => { now += 3000; return now; });
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: '하찮력 측정 시작' }));
+    fireEvent.click(screen.getByRole('button', { name: '측정 시작' }));
+    fireEvent.click(screen.getByRole('button', { name: '첫 번째 시간 감각 측정 시작 준비' }));
+    for (let trial = 0; trial < 3; trial += 1) {
+      fireEvent.click(screen.getByRole('button', { name: trial === 0 ? '시작하기' : '다음 측정' }));
+      fireEvent.click(screen.getByRole('button', { name: '지금!' }));
+    }
+    fireEvent.click(screen.getByRole('button', { name: '다음 측정' }));
+    expect(screen.getByRole('heading', { name: '중심 감각' })).toBeInTheDocument();
+    expect(screen.getByText('2 / 5')).toBeInTheDocument();
   });
 });

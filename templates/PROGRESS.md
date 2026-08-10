@@ -2,8 +2,8 @@
 
 ## 현재 단계
 
-- 단계 번호: 6
-- 단계 이름: DAY 1 시간 감각 검사 구현
+- 단계 번호: 7
+- 단계 이름: DAY 1 중심 인지 검사 구현
 - 상태: 구현 및 독립 코드 리뷰 수정 완료
 
 ## 완료
@@ -95,6 +95,21 @@
   - trial 사이·RUNNING·visibility race에서 cross-date evidence 혼합 및 duplicate append 차단
   - 전체 reset과 retry-safe closest summary 문구 수정
   - 날짜 경계/UI 회귀 보강 후 13 files / 94 tests 및 전체 빌드 통과
+- 7단계: DAY 1 중심 인지 검사 구현
+  - Center READY/RUNNING/TRIAL RESULT/COMPLETE/INCOMPLETE 흐름과 Time 완료 연결
+  - rectangle/wideRectangle/square 3개 도형의 결정적 고정 순서
+  - bounding rect 기반 0..1 normalized coordinate helper와 clamp 없는 outOfBounds invalidation
+  - Pointer Event 및 synchronous ref guard를 통한 중복 입력 방지
+  - background/date invalidation과 Center assessment 전체 날짜 재시작
+  - target 3/minimum valid 2/max 6 completion validator 재사용
+  - valid-only 평균 중심 오차/가장 정확한 도형 summary 및 marker 접근성 보완
+  - Center evidence session-memory only, Balance placeholder 연결
+  - 향후 DAY 1 전체 orchestration에서 5개 assessment의 shared session date로 승격 예정
+  - 독립 코드 리뷰 Critical 0건 / Major 2건 / Minor 1건
+  - rectangle/wideRectangle/square geometry를 4:3/16:9/1:1로 분리하고 RUNNING/RESULT mapping 일치
+  - valid/invalid Center target `(0.5, 0.5)` runtime literal invariant 강화
+  - 좌표 입력 영역의 `aria-describedby` 직접 연결 및 관련 회귀 테스트 추가
+  - 수정 후 16 files / 109 tests 및 전체 빌드 통과
 
 ## 현재 소스 상태
 
@@ -127,15 +142,15 @@
 
 ## 다음 작업
 
-### 7단계 DAY 1 중심 인지 검사 구현
+### 8단계 DAY 1 균형 분배 검사 구현
 
-`NextAssessmentPlaceholder`를 DAY 1 두 번째 검사인 중심 인지 검사로 교체하고 기존 raw/completion/date lifecycle 계약에 연결한다.
+세 번째 DAY 1 검사인 균형 분배 검사를 기존 raw/completion/date 계약에 맞춰 구현한다.
 
 ## 마지막 검증
 
 - `npm run typecheck`: 통과
 - `npm run lint`: 통과
-- `npm run test`: 13 files / 94 tests 통과
+- `npm run test`: 16 files / 109 tests 통과
 - `npm run build:web`, `npm run build:ait`, `npm run build`: 모두 통과
 - 새 dependency 및 금지된 UI/SDK adapter 변경 없음
 

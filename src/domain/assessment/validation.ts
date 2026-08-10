@@ -25,6 +25,7 @@ function hasInvalidBase(value: Record<string, unknown>): boolean {
 
 const conditionSideMatches = (condition: CenterCondition, side: DecorationSide): boolean =>
   (condition === 'plain' && side === 'none') || (condition === 'decoratedLeft' && side === 'left') || (condition === 'decoratedRight' && side === 'right');
+const isCenterTarget = (value: unknown): boolean => isPoint(value) && value.x === 0.5 && value.y === 0.5;
 
 export function isAnyTrial(input: unknown): input is AnyTrial {
   if (!isRecord(input) || typeof input.valid !== 'boolean') return false;
@@ -34,7 +35,7 @@ export function isAnyTrial(input: unknown): input is AnyTrial {
     case 'time':
       return input.condition === 'baseline' && input.targetDurationMs === 3000 && (input.valid ? isMilliseconds(input.observedDurationMs) : observationAbsent('observedDurationMs'));
     case 'center':
-      return input.condition === 'plain' && isPoint(input.target) && oneOf(input.shapeId, ['rectangle', 'wideRectangle', 'square']) && (input.valid ? isPoint(input.observed) : observationAbsent('observed'));
+      return input.condition === 'plain' && isCenterTarget(input.target) && oneOf(input.shapeId, ['rectangle', 'wideRectangle', 'square']) && (input.valid ? isPoint(input.observed) : observationAbsent('observed'));
     case 'balanceTwoWay':
       return oneOf(input.orientation, ['vertical', 'horizontal']) && input.targetRatio === 0.5 && (input.valid ? isNormalized(input.observedRatio) : observationAbsent('observedRatio'));
     case 'control':

@@ -95,6 +95,24 @@ button:focus-visible { outline: 3px solid rgba(91, 141, 239, .45); outline-offse
 .result-summary span { color: #5c626e; font-size: 13px; }
 .result-summary strong { color: #141e30; font-size: 21px; font-variant-numeric: tabular-nums; }
 .placeholder-screen { display: grid; place-items: center; text-align: center; }
+.center-screen { display: flex; flex-direction: column; }
+.center-running { padding-bottom: max(24px, env(safe-area-inset-bottom)); overscroll-behavior: contain; }
+.center-stage { display: grid; flex: 1; place-items: center; align-content: center; gap: 42px; }
+.center-stage > p { margin: 0; color: #5c626e; font-size: 14px; text-align: center; }
+.center-shape, .center-result-shape { border: 2px solid #5f6875; border-radius: 4px; background: #fff; }
+.center-shape { width: min(61vw, 220px); touch-action: none; cursor: crosshair; }
+.center-shape-rectangle { aspect-ratio: 4 / 3; }
+.center-shape-wideRectangle { width: min(78vw, 280px); aspect-ratio: 16 / 9; }
+.center-shape-square { aspect-ratio: 1 / 1; border-radius: 0; }
+.center-result-shape { position: relative; width: min(58vw, 210px); margin: 0 auto 20px; }
+.center-result-shape.center-shape-wideRectangle { width: min(72vw, 260px); }
+.center-marker { position: absolute; width: 16px; height: 16px; border-radius: 50%; pointer-events: none; transform: translate(-50%, -50%); }
+.actual-marker { top: 50%; left: 50%; border: 3px solid #5b8def; background: #fff; }
+.selected-marker { border: 2px solid #fff; background: #e05c5c; box-shadow: 0 0 0 2px #e05c5c; }
+.marker-legend { display: flex; justify-content: center; gap: 20px; margin: 0 0 22px; color: #5c626e; font-size: 12px; }
+.marker-legend span::before { display: inline-block; width: 8px; height: 8px; margin-right: 6px; border-radius: 50%; background: #e05c5c; content: ''; }
+.marker-legend span:last-child::before { border: 2px solid #5b8def; background: #fff; }
+.center-screen .trial-result h1 { font-size: 30px; }
 
 @media (max-width: 340px) {
   .screen { padding-right: 16px; padding-left: 16px; }
@@ -109,6 +127,10 @@ button:focus-visible { outline: 3px solid rgba(91, 141, 239, .45); outline-offse
   .assessment-list li { padding: 10px 0; }
   .measurement-symbol { width: 104px; height: 104px; margin-bottom: 20px; padding-top: 20px; border-radius: 32px; }
   .measurement-symbol span { font-size: 48px; }
+  .center-stage { gap: 24px; }
+  .center-shape { width: min(52vw, 185px); }
+  .center-shape-wideRectangle { width: min(70vw, 250px); }
+  .center-result-shape { width: min(44vw, 165px); margin-bottom: 12px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

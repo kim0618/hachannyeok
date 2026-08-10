@@ -5,9 +5,10 @@ import { AssessmentReadyScreen } from './screens/AssessmentReadyScreen';
 import { HomeScreen } from './screens/HomeScreen';
 import { NextAssessmentPlaceholder } from './screens/NextAssessmentPlaceholder';
 import { TimeAssessmentScreen } from './features/assessment/time/TimeAssessmentScreen';
+import { CenterAssessmentScreen } from './features/assessment/center/CenterAssessmentScreen';
 import './styles.css';
 
-export type AppScreen = 'home' | 'intro' | 'assessment-ready' | 'time-assessment' | 'next-placeholder';
+export type AppScreen = 'home' | 'intro' | 'assessment-ready' | 'time-assessment' | 'center-assessment' | 'next-placeholder';
 
 type EntryMode = 'first-time' | 'returning';
 
@@ -28,7 +29,8 @@ export function App() {
         />
       )}
       {screen === 'assessment-ready' && <AssessmentReadyScreen onStart={() => setScreen('time-assessment')} />}
-      {screen === 'time-assessment' && <TimeAssessmentScreen onNext={() => setScreen('next-placeholder')} />}
+      {screen === 'time-assessment' && <TimeAssessmentScreen onNext={() => setScreen('center-assessment')} />}
+      {screen === 'center-assessment' && <CenterAssessmentScreen onNext={() => setScreen('next-placeholder')} />}
       {screen === 'next-placeholder' && <NextAssessmentPlaceholder />}
     </AppShell>
   );

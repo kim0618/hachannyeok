@@ -4,8 +4,8 @@
 
 ## 1. Current Phase
 
-- 현재 단계: **6단계 — DAY 1 시간 감각 검사 구현 완료**
-- 다음 단계: **7단계 — DAY 1 중심 인지 검사 구현**
+- 현재 단계: **7단계 — DAY 1 중심 인지 검사 구현 완료**
+- 다음 단계: **8단계 — DAY 1 균형 분배 검사 구현**
 - `src/domain`에 문서의 calibration, math, raw union/runtime validation, completion, LocalDateKey/STATE, session/checkpoint, persisted schema/migration/idempotency/StoragePort 및 scoring engine 타입 경계를 구현함
 - Calibration/math/normalizer부터 baseline·daily·final score, stability, tendency, DAY 7 selector, profile, certification, final metric, Cross Insight, raw replay `deriveAnalysis`까지 구현함
 - 최초 사용자 홈/검사 안내/첫 시간 감각 행동 검사를 구현함. 나머지 DAY 1 검사, 한국어 결과 content table, Apps in Toss Storage adapter는 아직 구현하지 않음
@@ -166,3 +166,28 @@
 - cross-date valid evidence 혼합 금지, RUNNING 날짜 변경, visibility race, 전체 reset 및 UI 안내 회귀 테스트를 추가함
 - 전체 typecheck, lint, 13 files / 94 tests, web/AIT/전체 build와 `git diff --check` 통과
 - 6단계를 종료하고 7단계 DAY 1 중심 인지 검사 구현으로 진행 가능
+
+## 14. 7단계 DAY 1 중심 인지 검사 구현 결과
+
+- Time 완료 CTA를 Center Ready에 연결하고 READY → RUNNING → TRIAL RESULT → COMPLETE/INCOMPLETE 상태를 구현함
+- `rectangle → wideRectangle → square` 고정 순서와 중앙 target `(0.5, 0.5)`를 사용하며, 추가 retry도 같은 순서를 결정적으로 순환함
+- `getBoundingClientRect()` 기반 순수 coordinate helper로 pointer 좌표를 0..1 normalized coordinate로 변환하고 범위 밖 입력은 clamp 없이 `outOfBounds` invalid trial로 기록함
+- Pointer Event와 synchronous active ref guard로 touch/mouse 단일 경계를 사용하고 한 trial의 중복 입력을 차단함
+- `CenterTrial`, monotonic `performance.now()` timestamp와 domain completion validator를 재사용해 target 3/minimum valid 2/max 6을 적용함
+- RUNNING 중 background는 `backgrounded`; RUNNING 또는 trial 사이 날짜 변경은 Center 전체 restart required로 처리해 날짜가 다른 evidence 혼합을 차단함
+- 결과 상태에 선택점/실제 중심 marker와 normalized Euclidean 오차 안내를 표시하고, 완료 요약은 valid trial만 사용한 평균 중심 오차와 가장 정확한 도형을 표시함
+- 자유 좌표 입력 영역에 접근성 label/description을 연결하고 marker는 텍스트 정보와 함께 제공함
+- Center evidence는 Storage persistence 없이 React session memory에만 유지함
+- 완료 CTA는 DAY 1 세 번째 Balance placeholder로 연결함. Balance/Control/Focus 실제 검사는 구현하지 않음
+- 향후 DAY 1 전체 orchestration 단계에서 Time/Center/Balance/Control/Focus가 하나의 DAY 1 session date를 공유하도록 assessment-level date를 승격해야 함
+- 전체 typecheck, lint, 16 files / 107 tests, build:web, build:ait, build 및 `git diff --check` 통과
+
+## 15. 7단계 독립 코드 리뷰 수정 및 종료
+
+- 독립 코드 리뷰 결과 Critical 0건, Major 2건, Minor 1건을 확인함
+- `rectangle`, `wideRectangle`, `square`를 각각 4:3, 16:9, 1:1로 분리하고 RUNNING과 RESULT가 동일한 shape class mapping을 사용하도록 보강함
+- DAY 1 Center raw trial의 target을 valid/invalid arm 모두 정확한 `(0.5, 0.5)` literal로 runtime 검증하도록 강화함
+- 자유 좌표 입력 영역에 `aria-describedby`를 직접 연결해 실행 안내가 실제 interaction element에 연계되도록 수정함
+- fixed target 거부 경계, UI 생성 target, RUNNING/RESULT shape class와 접근성 설명 연결 회귀 테스트를 추가함
+- 전체 typecheck, lint, 16 files / 109 tests, build:web, build:ait, build 및 `git diff --check` 통과
+- 7단계를 종료하고 8단계 DAY 1 균형 분배 검사 구현으로 진행 가능
