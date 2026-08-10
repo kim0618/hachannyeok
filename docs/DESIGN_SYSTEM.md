@@ -52,13 +52,17 @@
 - ScoreBar
 - CertificationCard
 - ShareResultCard
-- AnalysisProgressCard
+- AnalysisStageCard
 - TodayAssessmentCard
 - NewInsightCard
 - AbilityChangeRow
 - FinalReportHero
 - EmptyState
 - ErrorState
+
+`AnalysisStageCard`는 `기본 분석 완료`, `심화 분석 n/5`, `최종 분석 준비 완료`, `최종 분석 완료`만 표현한다. 원형 퍼센트, 정확도 게이지, `%` 수치로 과학적 신뢰도를 암시하지 않는다.
+
+한 화면의 visually dominant CTA는 하나만 둔다. Secondary와 Tertiary는 색·면적·위치 위계를 낮추며 Primary와 경쟁하는 filled 스타일을 사용하지 않는다.
 
 ## 모션
 

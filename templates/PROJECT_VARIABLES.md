@@ -10,6 +10,8 @@
 - STORAGE_KEY: hachannyeok.profile.v1
 - CURRENT_STORAGE_VERSION: 1
 
+`STORAGE_KEY`의 `.v1`은 제품 namespace 초기 버전이며 payload migration 기준이 아니다. 실제 migration은 payload 내부 `schemaVersion`(`CURRENT_STORAGE_VERSION`)을 기준으로 한다. 일반 schema 변경마다 Storage key를 바꾸지 않으며, 완전히 별도 저장공간으로 이전할 명확한 사유가 있을 때만 key를 변경한다.
+
 ## 실제 프로젝트 생성 후 기록
 
 - Node version:

@@ -2,74 +2,90 @@
 
 ## 현재 단계
 
-- 단계 번호: 2.5
-- 단계 이름: 7일 누적 분석 제품 재설계
-- 상태: done — 제품·화면·저장·점수·카피·디자인 문서를 7개 분석일 구조로 확정. 기능 코드는 수정하지 않음
+- 단계 번호: 2.5E
+- 단계 이름: 수학/판정 계약 최종 고정
+- 상태: 수학/판정 계약 완료, 독립 최종 검수 대기
 
 ## 완료
 
-- **1단계**: Apps in Toss SDK 3.x 채택 및 `@apps-in-toss/web-framework@3.0.2` 고정
-- **2단계**: React 18.3.1 최소 기반, ESLint/Vitest, Vite/devtools unplugin, typecheck/lint/test/build 파이프라인 구성
-- **2단계 Codex 최종 검수**: Critical 0건, Major 0건, Minor 문서 불일치 3건 정리 완료
-- **2.5단계 제품 재설계**: 기존 1회성 검사 구조를 DAY 1 종합검사 → DAY 2~6 추가 분석 → DAY 7 최종 분석 구조로 문서에 반영
-- `docs/PRODUCT_SPEC.md`: 제품 정의, 7일 의미, 각 분석일 결과, 상태 머신, 재방문·공유·제외 범위 확정
-- `docs/SCREEN_SPEC.md`: STATE A~F 홈 CTA, DAY 1 기본 결과, 추가 분석, 최종 사용설명서, 오류·빈 상태 확정
-- `docs/STORAGE_SPEC.md`: `schemaVersion`, 사용자 상태, baseline/current 데이터, daily 기록, 날짜·중복·중단·실패·손상·마이그레이션 계약 확정
-- `docs/SCORING_SPEC.md`: DAY 1 baseline 보존, 관련 능력만 증분 업데이트, 유형 안정성, DAY 7 최종 분석 원칙 확정
-- `docs/COPY_GUIDE.md`: 자기 발견 중심 재방문 카피와 출석·손실 압박 금지 확정
-- `docs/DESIGN_SYSTEM.md`: 누적 분석에 필요한 문서상 컴포넌트 개념 추가
-
-## 확정된 제품 방향
-
-- Apps in Toss용 비게임 행동 기반 검사 앱
-- 서버, DB, 로그인, 랭킹, 친구 전적 없음
-- DAY 1은 약 90초의 종합검사이며 그 자체로 완결된 기본 분석 제공
-- DAY 2~6은 서로 다른 로컬 날짜에 하루 하나의 10~20초 추가 분석 제공
-- DAY 7은 최종 분석과 최종 하찮력 사용설명서 제공
-- DAY는 연속 달력 출석이 아니라 완료한 분석일 순서이며 놓친 날의 손실 없음
-- 재방문 보상은 포인트가 아니라 새롭게 확인되는 자기 정보
-- 포인트, 코인, 캐릭터 성장, 연속 출석 보상, 승패, 랜덤 결과 금지
+- 1단계: Apps in Toss SDK 3.x 및 `@apps-in-toss/web-framework@3.0.2` 고정
+- 2단계: React 최소 기반과 typecheck/lint/test/build 파이프라인 구성
+- 2.5단계: DAY 1 → DAY 2~6 → DAY 7 누적 분석 제품 구조 수립
+- 2.5B: 독립 감사 Major 8건에 대한 문서 계약 보강
+  - DAY 1 표준 baseline과 DAY 2~6 조건 변화 evidence 완전 분리
+  - DAILY 완료 결과를 `새로운 측정 → 해석 → baseline 관계`로 고정
+  - DAY 7을 lowest-confidence ability 1개의 적응형 최종 보정으로 확정
+  - raw evidence + 최소 session state만 저장하도록 source of truth 재설계
+  - session lifecycle, idempotency, LocalDateKey, STATE A~F 우선순위 확정
+  - scoring 계층, raw trial/좌표/최소 유효 trial, daily guardrail 확정
+  - 공식 API 확인을 integration gate로 둔 공유→신규 유입 계약 추가
+  - 상태별 Primary/Secondary/Tertiary CTA 확정
+  - 퍼센트 분석 진행 표시 제거, 진단 경계 문구와 전체 초기화 재검사 정책 확정
+- 2.5C: 직전 독립 재검수 Major 4건/Minor 3건에 대한 문서 계약 보강
+  - 당시 공통 trial/InvalidReason과 DAY 1~6 raw trial 필드 초안 확정
+  - DAY 1~7 target/minimum valid/condition requirement/attempt limit 확정
+  - raw input clamp 금지, normalized derived clamp 허용 정책 확정
+  - provisional Ability 공식, DAILY ±8 cap, profile switch margin, certification tiers 확정
+  - DAY 7 tuple selector와 ability별 discriminated final assessment 확정
+  - Most Stable/Condition-Sensitive/Positively Updated 최소 근거·표시 조건 확정
+  - payload semantic idempotency conflict와 StoragePort/SharePort integration boundary 확정
+  - invalid trial retry, interrupted short assessment restart, full data reset 용어 분리
+- 2.5D: 직전 독립 재검수 Major 6건/Minor 4건에 대한 문서 계약 보강
+  - valid/invalid trial discriminated union과 partial invalid observation 계약
+  - DAY 7 expected minimum denominator, binary condition coverage, stability group/unavailable 계약
+  - DAY 7 selected Ability 80/20 score 반영 및 preFinal 대비 ±6 cap
+  - deterministic profile family/variant와 family switch margin 의사 코드
+  - stage별 certification eligibility와 engine tier/content name 분리
+  - Cross Insight 0~2개와 근거 없음 fallback
+  - 검사별 normalizer 함수와 provisional calibration worst 초기값
+  - final assessment arm별 runtime completion validator 및 time literal invariant
+- 2.5E: 직전 독립 검수 Major 4건/Minor 3건에 대한 문서 계약 보강
+  - population standard deviation과 공통 clamp/round 함수
+  - Time/Center/Balance/Control 75/25 및 Focus 80/20 예외 normalizer
+  - 공통 0..1 normalized trial error와 Ability별 stability vector
+  - Derived Tendency 5개와 Most Condition-Sensitive 공통 척도
+  - Cross Insight 5개 formula와 deterministic selection
+  - Profile raw replay 순서와 high/low component별 hysteresis
+  - target attempt 전 조기 완료 금지, calibration registry version 1
 
 ## 현재 소스 상태
 
-- `src`에는 React 최소 기반만 존재
-- `App.tsx`는 placeholder
-- 홈 UI, 검사, 점수 엔진, Storage, 공유, 7일 누적 분석 기능은 아직 미구현
-- 2.5단계에서는 소스·패키지·빌드 설정을 수정하지 않음
+- `src`에는 React 최소 기반만 존재하며 홈 UI, 검사, 점수 엔진, Storage, 공유는 미구현
+- 2.5E에서도 기능·설정 코드와 패키지 파일을 수정하지 않음
+- 2.5B, 2.5C, 2.5D 및 2.5E 문서 보강 변경은 미커밋
 
-## 현재 문제와 제약
+## 확정된 구현 전 계약
 
-- TDS 미설치 — 실제 UI 착수 시 실사용 컴포넌트 기준으로 최소 도입
-- 브랜드 색상은 `apps-in-toss.config.ts`의 `#3182F6`과 문서의 `#5B8DEF`가 아직 불일치
-- `typescript-eslint@8.66.0`은 TypeScript `<6.1.0` peer 범위이므로 TypeScript 업그레이드 시 재확인 필요
-- `@vitejs/plugin-react@6.0.5` 설치에 `--legacy-peer-deps`를 1회 사용했으며 지속 설정과 `.npmrc`는 없음
-- `hachannyeok.ait`는 `ait build`가 생성하는 Apps in Toss 배포용 번들이며 `*.ait`는 `.gitignore`로 제외
-- `ait build`가 출력하는 `deploymentId`의 정확한 네트워크 의미는 공식 근거 미확인
-- 서버가 없으므로 기기 변경·앱 데이터 삭제 후 기록 복구나 동기화를 제공할 수 없음
+- Persisted root: `schemaVersion`, `baseline`, `dailyRecords`, `finalRecord`, `activeBaselineSession`, 최소 `metadata`
+- 파생값은 저장하지 않고 raw records에서 결정적으로 재생성
+- `AssessmentSessionState`: idle → inProgress → invalidated 또는 computedPendingSave → saved
+- `LocalDateKey`: local Y/M/D 직접 조립한 `YYYY-MM-DD`; 같은 날·과거 역행은 해금 금지
+- DAY 1 날짜 경계 시 checkpoint 폐기 후 새 session으로 전체 재시작
+- recordId/sessionId 기반 idempotent save와 duplicate append 방지
+- DAY 7 tie-break 및 결과 동률 순서: time → center → balance → control → focus
+- Ability baseline quality: accuracy 0.75 + consistency 0.25; DAILY candidate: baseline 0.75 + daily 0.25, delta cap ±8
+- DAY 7 selector: evidenceCoverage → conditionCoverage → stability unavailable 우선 → available끼리 낮은 stability → 고정 ability tie-break
+- profile switch margin 6, certification tier 경계 95/85/70/55, positive update 표시 최소 delta 3
+
+## 남은 calibration 항목
+
+초기 구현 숫자는 `CALIBRATION_VERSION = 1`의 provisional constants로 고정됐다. 출시 전 파일럿 데이터로 검사별 quality/dispersion worst range, tendency/condition threshold와 provisional weights/cap/margin/tier를 version 증가와 함께 보정한다. 구조/invariant 변경은 별도 schema/product contract 변경이다.
 
 ## 다음 작업
 
-### 3단계 — 공통 측정·저장·세션 계약 구현
+### 2.5E 독립 최종 검수
 
-코드로 먼저 고정할 계약:
+직전 Critical 0/Major 4/Minor 3의 해소 여부와 문서 간 수학/판정 계약을 최종 감사한다. 3단계 구현 완료로 간주하지 않는다.
 
-1. `AbilityScores`, `MetaTraits`, raw trial, invalid trial 타입
-2. DAY 1 baseline과 DAY 2~6 증분 측정 레코드
-3. `UserState` STATE A~F 파생 함수와 화면 전환 상태
-4. 로컬 날짜 키, 하루 중복 방지, 분석일 순서 결정 함수
-5. Apps in Toss Storage 비동기 어댑터와 `schemaVersion` 마이그레이션 골격
-6. 저장 실패 시 메모리 유지, 중단·재개, idempotent 완료 저장 계약
-7. 좌표 정규화, 시간 측정, 백그라운드 무효화 계약
-
-3단계에서는 UI나 개별 검사 완성을 앞당기지 않고 공통 계약과 단위 테스트를 우선한다.
+재검수 통과 뒤 3단계에서 raw trial discriminated union, 파생 함수, session/date/idempotency/storage migration 계약과 단위 테스트를 구현한다. UI나 개별 검사 완성은 앞당기지 않는다.
 
 ## 마지막 검증
 
-- 2단계 코드 검증: typecheck/lint/test/build:web/build:ait/build 모두 통과
-- 2.5단계: 문서 전용 변경
+- 2.5E: 문서 전용 변경
 - `git diff --check`: 통과
+- 금지된 기능·설정 코드 변경 없음: 확인 완료
 
 ## 마지막 커밋
 
-- hash:
-- message:
+- hash: `d8f9cc9`
+- message: `11`

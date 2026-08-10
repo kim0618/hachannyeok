@@ -1,129 +1,98 @@
 # Hachannyeok Project Handoff
 
-이 문서는 Codex와 Claude Code가 공통으로 읽는 현재 프로젝트 상태의 단일 인수인계 문서다. 도구와 관계없이 새 작업의 첫 진입점으로 사용한다.
+이 문서는 Codex와 Claude Code가 공통으로 읽는 현재 프로젝트 상태의 단일 인수인계 문서다. 새 작업은 이 문서부터 읽는다.
 
 ## 1. Current Phase
 
-- 현재 완료 단계: 2.5단계 — 7일 누적 분석 제품 재설계
-- 다음 단계: 3단계 — 공통 측정·저장·세션 계약 구현
-- 2단계 Codex 최종 검수: Critical 0건 / Major 0건 / Minor 문서 불일치 정리 완료
-- 2.5단계 결과: 7일 누적 분석 구조를 제품·화면·저장·점수·카피 문서에 확정, 기능 코드는 미구현
+- 현재 단계: **2.5E — 수학/판정 계약 완료, 독립 최종 검수 대기**
+- 다음 단계: **2.5E 독립 최종 검수**
+- 직전 독립 검수: Critical 0건 / Major 4건 / Minor 3건 / 결론 B
+- 이번 2.5E에서 동일 raw evidence가 동일 Ability Score, DAY 7 target, Profile, Certification, Tendency와 Final Metric을 만들도록 마지막 수학/판정 빈칸을 문서 수준에서 폐쇄했으며 3단계 구현은 아직 시작하지 않음
 
 ## 2. Product Direction
 
-- Apps in Toss용 비게임 행동 기반 검사 앱
-- 서버 없음, DB 없음, 로그인 없음, 랭킹 없음
-- 1일차 종합검사
-- 2~6일 추가 분석
-- 7일 최종 분석
-- 재방문 보상은 포인트가 아니라 자기 발견
-- 포인트, 코인 및 게임화 금지
+- Apps in Toss용 비게임 행동 기반 검사 앱, 서버·DB·로그인·랭킹 없음
+- DAY 1: 표준 조건 5개 능력 baseline, 제품 카피 `약 90초`, 내부 QA 90~120초
+- DAY 2~6: 서로 다른 날짜에 10~20초 조건 변화 evidence 하나씩
+- DAY 7: lowest-confidence ability 하나의 15~20초 적응형 최종 보정
+- DAY는 연속 출석이 아닌 완료 분석일 순서이며 놓친 날 손실 없음
+- DAY 7은 누적 데이터 기반 Cross Insight 최대 2개와 Stable/Condition-Sensitive/Positively Updated Ability 제공. eligible insight가 없으면 fallback 사용
+- 포인트·코인·캐릭터 성장·출석 보상 금지
 
-7일 누적 분석은 현재 확정된 제품 방향이며 상세 명세 반영을 완료했다. DAY는 연속 달력 출석이 아니라 서로 다른 로컬 날짜에 완료한 분석일 순서다. 놓친 날의 손실은 없고 같은 날짜에 여러 분석일을 몰아서 완료할 수 없다.
+## 3. 2.5E에서 확정한 핵심 계약
 
-## 3. Technical Baseline
+- DAILY 결과: `새로운 측정 → 해석 → 기존 baseline과의 관계`; 점수·유형·자격은 threshold를 넘을 때만 변경
+- 분석 단계: `기본 분석 완료`, `심화 분석 n/5`, `최종 분석 준비 완료`, `최종 분석 완료`; UI 퍼센트 없음
+- 저장 source of truth: raw evidence + `activeBaselineSession` + 최소 metadata
+- 저장하지 않음: userState, scores, traits, insights, certifications, profileType, analysisStage, finalReport
+- session lifecycle: idle/inProgress/invalidated/computedPendingSave/saved
+- LocalDateKey: local Y/M/D 직접 조립한 `YYYY-MM-DD`; 날짜 역행 해금 금지
+- DAY 1 날짜 변경: 기존 checkpoint 폐기 후 새 session으로 전체 재시작
+- STATE A~F는 raw record와 오늘 날짜에서 우선순위대로 파생; DAY 6 당일 D, 다음 유효 날짜 E
+- scoring: Raw → Normalized → Ability → Meta/Derived Tendencies → Insights/Certifications/Profile
+- 공유: 공식 share/entry/deep-link API 검증 전에는 제품 계약과 integration gate를 분리
+- MVP 재검사: baseline overwrite 없음. 전체 데이터 초기화 후 STATE A만 지원
+- 모든 raw trial은 millisecond timestamp, valid/invalid invariant, 명시적 InvalidReason을 공유
+- DAY 1~7 trial 타입·target·minimum valid·condition requirement와 최대 시도 한도 확정
+- normalized raw clamp 금지/derived clamp 허용, provisional Ability 공식과 DAILY ±8 cap 확정
+- DAY 7 confidence는 `(evidenceCoverage, conditionCoverage, stabilityAvailable, stability)` 우선순위 비교이며 ability별 final assessment 고정
+- profile switch margin 6, certification tier, predicate 기반 insight, Most Stable 후보 요건 확정
+- 동일 recordId의 semantic equality/conflict와 finalAlreadyCompleted idempotency 확정
+- 제품 타입은 SDK 타입과 직접 결합하지 않고 3단계에서 `StoragePort`/`SharePort` 경계 사용
+- valid/invalid raw trial은 discriminated union이며 invalid observation sentinel을 금지
+- DAY 7 expected minimum evidence는 time 5/center 5/balance 4/control 5/focus 4로 고정하고 stability unavailable을 별도 처리
+- DAY 7 selected Ability 점수는 preFinal/final 80/20, preFinal 대비 ±6 cap으로만 변경
+- profile family/variant와 switch margin, stage별 certification eligibility, Cross Insight 0~2/fallback을 결정적으로 고정
+- 검사별 normalizer 함수와 provisional worst constants, arm별 final completion validator를 고정
+- population standard deviation, clamp/round 공통 함수와 Ability별 최종 normalizer를 고정
+- 공통 0..1 normalized trial error 기반 stability vector와 threshold를 고정
+- Derived Tendency 5개, Most Condition-Sensitive, Cross Insight 5개 registry formula와 tie-break를 고정
+- Profile을 raw record의 DAY 1 → sorted DAY 2~6 → DAY 7 replay로 파생하고 high/low component별 hysteresis를 고정
+- target attempt 전 조기 완료 금지와 `CALIBRATION_VERSION = 1`을 고정
 
-- Apps in Toss SDK 3.x
-- `@apps-in-toss/web-framework` 3.0.2
+## 4. Technical Baseline
+
+- `@apps-in-toss/web-framework` 3.0.2, React/React DOM 18.3.1
+- TypeScript strict, Vite 8.2.0, ESLint 10.8.0, Vitest 4.1.10, jsdom 29.1.1
+- TDS·상태관리·라우팅 라이브러리 미설치
 - 설정 파일: `apps-in-toss.config.ts`
-- React 18.3.1
-- React DOM 18.3.1
-- TypeScript strict mode
-- Vite 8.2.0
-- `@vitejs/plugin-react` 6.0.5
-- ESLint 10.8.0
-- Vitest 4.1.10
-- jsdom 29.1.1
-- Apps in Toss devtools unplugin 적용
-- TDS 미설치
-- 상태관리 라이브러리 없음
-- 라우팅 라이브러리 없음
 
-## 4. Known Special Installation Note
+`@vitejs/plugin-react@6.0.5` 설치 때 optional peer 문제로 그 설치 1회에만 `--legacy-peer-deps`를 사용했다. 지속 설정과 `.npmrc`는 없다.
 
-`@vitejs/plugin-react@6.0.5` 설치 시 optional peer resolution 문제 때문에 해당 설치 1회에만 `--legacy-peer-deps`를 사용했다.
+## 5. Current Source State
 
-- 지속 설정 없음
-- `.npmrc` 없음
-- `legacy-peer-deps` global/local config: `false`
-- `@rolldown/plugin-babel` 미설치
-- `babel-plugin-react-compiler` 미설치
+`src`에는 React placeholder와 smoke test만 있다. 홈 UI, 검사, 점수 엔진, Storage, 공유, 7일 누적 분석은 미구현이다. 2.5E에서는 기능·설정 코드를 수정하지 않았다.
 
-향후 의존성을 재설치하거나 업데이트할 때 이 peer resolution 문제를 다시 확인한다.
-
-## 5. Validation Commands
-
-현재 다음 명령이 모두 통과한다.
-
-```bash
-npm run typecheck
-npm run lint
-npm run test
-npm run build:web
-npm run build:ait
-npm run build
-```
-
-## 6. Current Source State
-
-현재 `src`에는 최소 React 기반만 존재한다.
-
-- `main.tsx`
-- `App.tsx` placeholder
-- `App.test.tsx` smoke test
-- 실제 홈 UI 없음
-- 검사 구현 없음
-- 점수 엔진 없음
-- 저장 구현 없음
-- 공유 구현 없음
-- 7일 누적 분석 구현 없음
-
-## 7. Files To Read Before Any Work
-
-모든 AI 에이전트는 작업 전에 다음을 순서대로 읽는다.
+## 6. Files To Read Before Work
 
 1. `HANDOFF.md`
 2. `AGENTS.md` 또는 `CLAUDE.md`
-3. `templates/PROGRESS.md`
-4. 작업과 관련된 `docs/*`
-5. 현재 `git diff`와 `git status`
+3. `templates/PROGRESS.md`, `templates/PROJECT_VARIABLES.md`
+4. 관련 `docs/*`
+5. 현재 `git status`, `git diff`, `git log -1 --oneline`
 
-도구가 Codex인지 Claude Code인지와 관계없이 `HANDOFF.md`가 현재 상태의 첫 진입점이다.
+이전 AI 설명보다 실제 저장소와 검증 결과를 우선한다. 문서와 코드가 충돌하면 먼저 보고하고 임의로 범위를 넓히지 않는다.
 
-## 8. Rules For Tool Switching
+## 7. Git State
 
-- 특정 AI 세션의 이전 대화에 의존하지 않는다.
-- 모든 결정은 저장소 문서에 남긴다.
-- 단계 종료 시 `HANDOFF.md`와 `templates/PROGRESS.md`를 갱신한다.
-- 새 도구 또는 새 세션은 반드시 `HANDOFF.md`부터 읽는다.
-- 미커밋 변경이 있으면 작업 전 `git diff`를 읽는다.
-- 이전 AI의 설명보다 실제 저장소와 테스트 결과를 우선한다.
-- 문서와 코드가 충돌하면 먼저 보고하고 임의로 수정하지 않는다.
+- 2.5B 작업 시작 시 working tree: clean
+- 작업 시작 시 최신 커밋: `d8f9cc9 11`
+- 현재 2.5B, 2.5C, 2.5D 및 2.5E 문서 보강 변경은 미커밋
+- 기능·설정 코드 변경 없음
 
-## 9. Git State
+## 8. Next — 2.5E 독립 최종 검수
 
-현재 working tree에는 2단계 기반 변경과 2.5단계 문서 변경이 함께 존재한다. 3단계 전에 검토 후 커밋해 clean 상태로 만든다.
+다음 검수는 직전 Major 4건/Minor 3건의 해소와 population stddev, Ability normalizer, stability, tendency/condition/cross registry, Profile replay/hysteresis, completion validator 및 calibration registry의 결정성을 재확인한다. 통과 전 3단계 구현 완료라고 기록하지 않는다.
 
-2단계 예정 커밋 메시지:
+재검수 통과 후 3단계 구현 계약:
 
-```text
-chore: establish React and quality pipeline
-```
+- raw trial discriminated union, 좌표·millisecond 시간 validation, target/minimum valid/attempt limit
+- persisted root runtime schema와 schemaVersion migration
+- raw records 기반 Ability/Traits/Insights/Profile/AnalysisStage 파생 함수
+- STATE A~F 파생, LocalDateKey 동일·진행·역행 및 날짜 경계 처리
+- AssessmentSessionState 전환과 DAY 1 checkpoint
+- sessionId/recordId 기반 idempotent save와 duplicate prevention
+- provisional scoring/calibration, DAILY influence guardrail과 deterministic DAY 7 lowest-confidence selection
+- Apps in Toss 공식 Storage/share/entry/deep-link 지원 검증
 
-2.5단계 문서를 별도 커밋한다면 권장 메시지는 `docs: define seven-day cumulative analysis`다.
-
-## 10. Next Step
-
-3단계에서는 다음 공통 계약을 코드와 단위 테스트로 먼저 고정한다.
-
-- 공통 능력·특성·원시 측정 타입
-- DAY 1 baseline과 daily 증분 측정 레코드
-- STATE A~F 파생과 세션 전환
-- 로컬 날짜 키와 하루 중복 방지
-- Apps in Toss Storage 어댑터와 `schemaVersion` 마이그레이션 골격
-- 저장 실패·중단·재개·중복 제출 계약
-- 모바일 좌표 정규화와 백그라운드 무효화 계약
-
-기능 화면과 개별 검사 구현을 앞당기지 않는다. 현재 기능 코드는 여전히 미구현 상태다.
-
-기존 번호형 구현 프롬프트는 2.5단계 이전 구조에서 작성됐다. 이후 단계에서 사용할 때는 현재 `docs/*`와 이 문서를 우선하고, 충돌하는 프롬프트는 해당 단계 착수 전에 새 7일 구조에 맞게 검토·갱신한다.
+초기 구현 상수는 `CALIBRATION_VERSION = 1`로 문서에 모두 고정했다. 출시 전 파일럿에서는 version 증가와 함께 검사별 normalizer/worst range, composer weight, stability/tendency/condition threshold와 provisional cap/margin/tier 값을 보정한다. 구조/invariant 변경은 별도 schema/product contract 변경이다.
