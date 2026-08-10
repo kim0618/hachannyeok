@@ -4,11 +4,11 @@
 
 ## 1. Current Phase
 
-- 현재 단계: **5단계 — 홈/초기 사용자 흐름 구현 완료**
-- 다음 단계: **6단계 — DAY 1 실제 행동 검사 UI/세션 구현**
+- 현재 단계: **6단계 — DAY 1 시간 감각 검사 구현 완료**
+- 다음 단계: **7단계 — DAY 1 중심 인지 검사 구현**
 - `src/domain`에 문서의 calibration, math, raw union/runtime validation, completion, LocalDateKey/STATE, session/checkpoint, persisted schema/migration/idempotency/StoragePort 및 scoring engine 타입 경계를 구현함
 - Calibration/math/normalizer부터 baseline·daily·final score, stability, tendency, DAY 7 selector, profile, certification, final metric, Cross Insight, raw replay `deriveAnalysis`까지 구현함
-- 최초 사용자 홈/검사 안내/첫 측정 준비 UI를 구현함. 실제 행동 검사, 한국어 결과 content table, Apps in Toss Storage adapter는 아직 구현하지 않음
+- 최초 사용자 홈/검사 안내/첫 시간 감각 행동 검사를 구현함. 나머지 DAY 1 검사, 한국어 결과 content table, Apps in Toss Storage adapter는 아직 구현하지 않음
 
 ## 2. Product Direction
 
@@ -140,3 +140,29 @@
 - 실제 timer, `performance.now()`, invalidation, scoring, result, storage, router는 구현하거나 import하지 않음
 - Testing Library 진입 흐름 테스트 4개를 추가하고 공통 cleanup으로 테스트 DOM 격리를 보완함
 - typecheck, lint, 11 files / 74 tests, web/AIT build 및 `git diff --check` 통과
+
+## 12. 6단계 DAY 1 시간 감각 검사 구현 결과
+
+- 준비 화면의 CTA를 `TimeAssessmentScreen`으로 연결하고 READY → RUNNING → TRIAL RESULT → COMPLETE/INCOMPLETE 상태를 구현함
+- elapsed 측정과 raw trial의 `startedAtMs`/`completedAtMs`에는 monotonic `performance.now()` clock을 사용하고 테스트용 `MeasurementClock`을 주입 가능하게 함
+- `TimeTrial` raw union, `toLocalDateKey`, `validateCompletion`을 재사용함. trial은 `crypto.randomUUID()`로 식별하며 session memory에만 유지함
+- RUNNING 중 `visibilitychange` hidden을 `backgrounded`, 완료 입력 시 local date 변경을 `dateChanged` invalid trial로 기록하고 scoring용 valid 목록에서 제외함
+- active ref를 첫 입력에서 동기적으로 비워 double tap/duplicate completion을 방지하고 StrictMode listener cleanup을 검증함
+- target 3/minimum valid 2, 최대 6 attempts의 retry/assessmentIncomplete를 domain validator로 판정함
+- 유효 측정값은 소수점 둘째 자리 초, 빠름/늦음 문구로 표시하고 완료 시 평균 기록·평균 절대 오차·가장 가까운 기록만 표시함. 전체 Ability Score는 노출하지 않음
+- 완료 CTA는 다음 단계의 Center 검사 대신 `NextAssessmentPlaceholder`로 임시 연결함
+- Apps in Toss Storage, `activeBaselineSession`, scoring 결과 persist는 DAY 1 전체 검사 연결 전까지 의도적으로 추가하지 않음
+- fake clock, background/date invalidation, duplicate input, retry/completion/incomplete, invalid scoring 제외, StrictMode cleanup 테스트를 추가함
+- 마지막 전체 검증: typecheck, lint, 13 files / 87 tests, build:web, build:ait, build 및 `git diff --check` 모두 통과
+
+## 13. 6단계 독립 코드 리뷰 수정 및 종료
+
+- 독립 코드 리뷰 결과 Critical 0건, Major 1건, Minor 1건을 확인함
+- Time Assessment 첫 trial 시작 시 assessment-level `LocalDateKey`를 고정하고 assessment가 유지되는 동안 변경하지 않도록 보강함
+- trial 사이 또는 RUNNING 중 날짜가 바뀌면 전체 Time Assessment 재시작 상태로 전환하여 서로 다른 날짜의 evidence 혼합을 차단함
+- 자정 변경과 visibility hidden 경쟁에서도 active trial을 한 번만 확정하고 assessment-level 날짜 invalidation을 우선하도록 처리함
+- 다시 시작할 때 trials, active trial, assessment 시작 날짜와 진행 상태를 모두 초기화함
+- retry가 최대 6 attempts까지 가능하므로 summary의 `세 번 중 가장 가까운 기록`을 `가장 가까운 기록`으로 수정함
+- cross-date valid evidence 혼합 금지, RUNNING 날짜 변경, visibility race, 전체 reset 및 UI 안내 회귀 테스트를 추가함
+- 전체 typecheck, lint, 13 files / 94 tests, web/AIT/전체 build와 `git diff --check` 통과
+- 6단계를 종료하고 7단계 DAY 1 중심 인지 검사 구현으로 진행 가능

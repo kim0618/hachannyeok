@@ -3,9 +3,11 @@ import { AppShell } from './components/AppShell';
 import { AssessmentIntroScreen } from './screens/AssessmentIntroScreen';
 import { AssessmentReadyScreen } from './screens/AssessmentReadyScreen';
 import { HomeScreen } from './screens/HomeScreen';
+import { NextAssessmentPlaceholder } from './screens/NextAssessmentPlaceholder';
+import { TimeAssessmentScreen } from './features/assessment/time/TimeAssessmentScreen';
 import './styles.css';
 
-export type AppScreen = 'home' | 'intro' | 'assessment-ready';
+export type AppScreen = 'home' | 'intro' | 'assessment-ready' | 'time-assessment' | 'next-placeholder';
 
 type EntryMode = 'first-time' | 'returning';
 
@@ -25,7 +27,9 @@ export function App() {
           onStart={() => setScreen('assessment-ready')}
         />
       )}
-      {screen === 'assessment-ready' && <AssessmentReadyScreen />}
+      {screen === 'assessment-ready' && <AssessmentReadyScreen onStart={() => setScreen('time-assessment')} />}
+      {screen === 'time-assessment' && <TimeAssessmentScreen onNext={() => setScreen('next-placeholder')} />}
+      {screen === 'next-placeholder' && <NextAssessmentPlaceholder />}
     </AppShell>
   );
 }

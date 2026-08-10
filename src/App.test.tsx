@@ -36,4 +36,14 @@ describe('최초 사용자 진입 흐름', () => {
     expect(screen.getByRole('heading', { name: /3초라고 느껴질 때/ })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '첫 번째 시간 감각 측정 시작 준비' })).toBeInTheDocument();
   });
+
+  it('준비 화면 CTA가 실제 시간 감각 READY 화면으로 연결된다', () => {
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: '하찮력 측정 시작' }));
+    fireEvent.click(screen.getByRole('button', { name: '측정 시작' }));
+    fireEvent.click(screen.getByRole('button', { name: '첫 번째 시간 감각 측정 시작 준비' }));
+
+    expect(screen.getByRole('heading', { name: /시작하면 시간이/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '시작하기' })).toBeInTheDocument();
+  });
 });

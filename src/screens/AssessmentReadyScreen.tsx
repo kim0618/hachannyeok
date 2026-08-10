@@ -1,6 +1,8 @@
 import { PrimaryButton } from '../components/PrimaryButton';
 
-export function AssessmentReadyScreen() {
+interface AssessmentReadyScreenProps { onStart: () => void }
+
+export function AssessmentReadyScreen({ onStart }: AssessmentReadyScreenProps) {
   return (
     <div className="screen ready-screen">
       <header className="progress-header">
@@ -15,11 +17,11 @@ export function AssessmentReadyScreen() {
         </div>
         <p className="eyebrow">시간 감각</p>
         <h1 id="ready-title">3초라고 느껴질 때<br />눌러주세요.</h1>
-        <p>버튼을 누르면 안내만 마치고 준비 상태로 이동합니다. 실제 측정은 아직 시작되지 않습니다.</p>
+        <p>다음 화면에서 시작하면 시간 표시 없이 측정합니다.</p>
       </section>
 
       <div className="bottom-action">
-        <PrimaryButton aria-label="첫 번째 시간 감각 측정 시작 준비">시작하기</PrimaryButton>
+        <PrimaryButton aria-label="첫 번째 시간 감각 측정 시작 준비" onClick={onStart}>시작하기</PrimaryButton>
       </div>
     </div>
   );

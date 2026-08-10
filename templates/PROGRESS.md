@@ -2,9 +2,9 @@
 
 ## 현재 단계
 
-- 단계 번호: 5
-- 단계 이름: 홈/초기 사용자 흐름 구현
-- 상태: 구현 및 검증 완료
+- 단계 번호: 6
+- 단계 이름: DAY 1 시간 감각 검사 구현
+- 상태: 구현 및 독립 코드 리뷰 수정 완료
 
 ## 완료
 
@@ -81,11 +81,25 @@
   - 실제 timer/scoring/storage/router 없이 UI navigation state만 구현
   - Testing Library 진입 흐름 4개 및 테스트 cleanup 추가
   - 11 files / 74 tests와 전체 web/AIT build 통과
+- 6단계: DAY 1 시간 감각 검사 구현
+  - 준비 화면 → 시간 감각 READY → RUNNING → 결과 → 완료/미완료 흐름 연결
+  - `performance.now()` 기반 monotonic 측정 clock과 fake clock 주입 경계
+  - Raw `TimeTrial`, `toLocalDateKey`, domain completion validator 재사용
+  - visibility hidden의 `backgrounded`, local date 변경의 `dateChanged` invalidation
+  - 동기 active guard로 duplicate input 방지, StrictMode listener cleanup
+  - target 3/minimum valid 2, 최대 6 attempts retry와 assessmentIncomplete
+  - 유효 trial만 사용한 평균 기록·평균 절대 오차·closest 중간 결과
+  - persistence 없이 React session memory만 사용, 다음 Center는 placeholder 연결
+  - 독립 코드 리뷰 Critical 0건 / Major 1건 / Minor 1건
+  - assessment-level LocalDateKey 고정과 날짜 변경 시 전체 Time Assessment 재시작 적용
+  - trial 사이·RUNNING·visibility race에서 cross-date evidence 혼합 및 duplicate append 차단
+  - 전체 reset과 retry-safe closest summary 문구 수정
+  - 날짜 경계/UI 회귀 보강 후 13 files / 94 tests 및 전체 빌드 통과
 
 ## 현재 소스 상태
 
 - `src/domain/assessment`, `scoring`, `progression`, `session`, `storage`에 3단계 기반 계약 구현
-- 기존 React placeholder는 제거; 최초 사용자 홈/안내/첫 검사 준비 UI 구현, 실제 행동 검사와 결과 UI는 미구현
+- 기존 React placeholder는 제거; 최초 사용자 홈/안내/첫 시간 감각 행동 검사와 중간 결과 UI 구현, 나머지 DAY 1 검사는 미구현
 - 실제 scoring 콘텐츠 엔진과 Apps in Toss Storage adapter는 미구현
 - 패키지 및 설정 변경 없음
 
@@ -113,15 +127,15 @@
 
 ## 다음 작업
 
-### 6단계 DAY 1 실제 행동 검사 UI/세션 구현
+### 7단계 DAY 1 중심 인지 검사 구현
 
-5개 DAY 1 행동 검사의 실제 interaction과 trial/session 흐름을 구현한다. 5단계의 `assessment-ready` 시작 버튼은 현재 의도적으로 측정을 시작하지 않는다.
+`NextAssessmentPlaceholder`를 DAY 1 두 번째 검사인 중심 인지 검사로 교체하고 기존 raw/completion/date lifecycle 계약에 연결한다.
 
 ## 마지막 검증
 
 - `npm run typecheck`: 통과
 - `npm run lint`: 통과
-- `npm run test`: 11 files / 74 tests 통과
+- `npm run test`: 13 files / 94 tests 통과
 - `npm run build:web`, `npm run build:ait`, `npm run build`: 모두 통과
 - 새 dependency 및 금지된 UI/SDK adapter 변경 없음
 
