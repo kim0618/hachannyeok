@@ -1,0 +1,3 @@
+import { CERTIFICATION_THRESHOLDS } from './calibration'; import type { AbilityScores, CertificationTier } from './types';
+export const selectCertification=(score:number):CertificationTier=>score>=CERTIFICATION_THRESHOLDS.special?'special':score>=CERTIFICATION_THRESHOLDS.grade1?'grade1':score>=CERTIFICATION_THRESHOLDS.grade2?'grade2':score>=CERTIFICATION_THRESHOLDS.grade3?'grade3':'observer';
+export const selectCertifications=(scores:AbilityScores)=>Object.fromEntries(Object.entries(scores).map(([ability,score])=>[ability,selectCertification(score)])) as Record<keyof AbilityScores,CertificationTier>;

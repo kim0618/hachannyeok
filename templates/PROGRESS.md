@@ -2,9 +2,9 @@
 
 ## 현재 단계
 
-- 단계 번호: 2.5E
-- 단계 이름: 수학/판정 계약 최종 고정
-- 상태: 수학/판정 계약 완료, 독립 최종 검수 대기
+- 단계 번호: 5
+- 단계 이름: 홈/초기 사용자 흐름 구현
+- 상태: 구현 및 검증 완료
 
 ## 완료
 
@@ -47,12 +47,47 @@
   - Cross Insight 5개 formula와 deterministic selection
   - Profile raw replay 순서와 high/low component별 hysteresis
   - target attempt 전 조기 완료 금지, calibration registry version 1
+- 3단계: 공통 domain 계약 구현
+  - calibration v1 registry와 finite input을 강제하는 mean/populationStdDev/clamp01/roundScore
+  - DAY 1~7 valid/invalid raw trial 및 assessment result discriminated union
+  - 좌표, millisecond, literal/condition, timestamp, spatial count runtime validation
+  - target/minimum valid/condition/고정 구성/max attempt completion validator
+  - LocalDateKey, STATE A~F, session lifecycle, DAY 1 checkpoint 폐기 helper
+  - persisted root runtime schema, current-version migration skeleton
+  - stable identity, semantic equality, duplicate/final save decision과 StoragePort
+  - 핵심 domain helper 및 회귀 테스트 46개 작성
+  - 독립 코드 리뷰 Critical 0건 / Major 4건 / Minor 2건
+  - Major 4건 수정 완료: final arm literal, unknown assessmentType 안전 거부, DAY 1 checkpoint 완료성, invalid Focus `correct` 타입
+  - finalFocus 고정 구성의 composition bucket 회귀 수정
+- 4단계: 점수/분석 엔진 구현
+  - Calibration v1 registry와 median/Euclidean math helper
+  - Time/Center/Balance/Control/Focus/Spatial Memory normalizer 및 explicit insufficient evidence
+  - DAY 1 baseline, DAY 2~6 equivalent/±8 guardrail, DAY 7 equivalent/±6 guardrail
+  - stability, 5개 tendency registry/dominant selector, DAY 7 confidence/target selector
+  - profile family/variant hysteresis replay, certification, final metrics, Cross Insight 0~2개
+  - persisted raw record 기반 `deriveAnalysis`와 UI 비결합 `DerivedAnalysis` 타입
+  - scoring 회귀 포함 10 files / 64 tests 통과
+  - 독립 코드 리뷰 Critical 0건 / Major 2건 / Minor 1건
+  - Balance condition sensitivity를 multiPartitionBias와 분리하여 positive three-way degradation만 반영
+  - overflow-safe mean/median/populationStdDev와 explicit calculation failure propagation 적용
+  - DAY 7 condition coverage를 실제 valid condition minimum 검사로 보완
+  - 직접 회귀 테스트 보강 후 11 files / 71 tests 및 전체 빌드 통과
+- 5단계: 홈/초기 사용자 흐름 구현
+  - 최초 사용자 홈, 5개 검사 안내, 첫 시간 감각 측정 준비 화면 구현
+  - local `AppScreen` 상태로 홈 → 안내 → 준비 및 안내 → 홈 전환 연결
+  - 공통 AppShell/PrimaryButton/InfoPill/AssessmentPreviewItem 분리
+  - 360×800 mobile-first, safe area, 고정 CTA, 작은 화면과 focus-visible 대응
+  - TDS 미설치 및 신규 설치 승인 필요에 따라 dependency 추가 없이 React + CSS 사용
+  - 실제 timer/scoring/storage/router 없이 UI navigation state만 구현
+  - Testing Library 진입 흐름 4개 및 테스트 cleanup 추가
+  - 11 files / 74 tests와 전체 web/AIT build 통과
 
 ## 현재 소스 상태
 
-- `src`에는 React 최소 기반만 존재하며 홈 UI, 검사, 점수 엔진, Storage, 공유는 미구현
-- 2.5E에서도 기능·설정 코드와 패키지 파일을 수정하지 않음
-- 2.5B, 2.5C, 2.5D 및 2.5E 문서 보강 변경은 미커밋
+- `src/domain/assessment`, `scoring`, `progression`, `session`, `storage`에 3단계 기반 계약 구현
+- 기존 React placeholder는 제거; 최초 사용자 홈/안내/첫 검사 준비 UI 구현, 실제 행동 검사와 결과 UI는 미구현
+- 실제 scoring 콘텐츠 엔진과 Apps in Toss Storage adapter는 미구현
+- 패키지 및 설정 변경 없음
 
 ## 확정된 구현 전 계약
 
@@ -71,21 +106,26 @@
 
 초기 구현 숫자는 `CALIBRATION_VERSION = 1`의 provisional constants로 고정됐다. 출시 전 파일럿 데이터로 검사별 quality/dispersion worst range, tendency/condition threshold와 provisional weights/cap/margin/tier를 version 증가와 함께 보정한다. 구조/invariant 변경은 별도 schema/product contract 변경이다.
 
+## 남은 Minor TODO
+
+- persisted `ISODateTime` runtime 형식 검증 강화
+- 4단계 replay consumer에서 `dailyRecords`를 `analysisDay` 오름차순으로 명시적 정렬
+
 ## 다음 작업
 
-### 2.5E 독립 최종 검수
+### 6단계 DAY 1 실제 행동 검사 UI/세션 구현
 
-직전 Critical 0/Major 4/Minor 3의 해소 여부와 문서 간 수학/판정 계약을 최종 감사한다. 3단계 구현 완료로 간주하지 않는다.
-
-재검수 통과 뒤 3단계에서 raw trial discriminated union, 파생 함수, session/date/idempotency/storage migration 계약과 단위 테스트를 구현한다. UI나 개별 검사 완성은 앞당기지 않는다.
+5개 DAY 1 행동 검사의 실제 interaction과 trial/session 흐름을 구현한다. 5단계의 `assessment-ready` 시작 버튼은 현재 의도적으로 측정을 시작하지 않는다.
 
 ## 마지막 검증
 
-- 2.5E: 문서 전용 변경
-- `git diff --check`: 통과
-- 금지된 기능·설정 코드 변경 없음: 확인 완료
+- `npm run typecheck`: 통과
+- `npm run lint`: 통과
+- `npm run test`: 11 files / 74 tests 통과
+- `npm run build:web`, `npm run build:ait`, `npm run build`: 모두 통과
+- 새 dependency 및 금지된 UI/SDK adapter 변경 없음
 
 ## 마지막 커밋
 
-- hash: `d8f9cc9`
-- message: `11`
+- hash: `9836d21`
+- message: `검수`

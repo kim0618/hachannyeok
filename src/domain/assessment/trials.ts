@@ -1,0 +1,37 @@
+import type { InvalidTrialBase, Point, ValidTrialBase } from './types';
+
+export type ValidTimeTrial = ValidTrialBase & { kind: 'time'; condition: 'baseline'; targetDurationMs: 3000; observedDurationMs: number };
+export type InvalidTimeTrial = InvalidTrialBase & { kind: 'time'; condition: 'baseline'; targetDurationMs: 3000; observedDurationMs?: null };
+export type TimeTrial = ValidTimeTrial | InvalidTimeTrial;
+export type ShapeId = 'rectangle' | 'wideRectangle' | 'square';
+export type ValidCenterTrial = ValidTrialBase & { kind: 'center'; condition: 'plain'; target: Point; observed: Point; shapeId: ShapeId };
+export type InvalidCenterTrial = InvalidTrialBase & { kind: 'center'; condition: 'plain'; target: Point; shapeId: ShapeId; observed?: null };
+export type CenterTrial = ValidCenterTrial | InvalidCenterTrial;
+export type ValidBalanceTwoWayTrial = ValidTrialBase & { kind: 'balanceTwoWay'; orientation: 'vertical' | 'horizontal'; targetRatio: 0.5; observedRatio: number };
+export type InvalidBalanceTwoWayTrial = InvalidTrialBase & { kind: 'balanceTwoWay'; orientation: 'vertical' | 'horizontal'; targetRatio: 0.5; observedRatio?: null };
+export type BalanceTwoWayTrial = ValidBalanceTwoWayTrial | InvalidBalanceTwoWayTrial;
+export type ValidControlTrial = ValidTrialBase & { kind: 'control'; condition: 'constant'; targetPosition: number; observedPosition: number; speedNormalized: number };
+export type InvalidControlTrial = InvalidTrialBase & { kind: 'control'; condition: 'constant'; targetPosition: number; speedNormalized: number; observedPosition?: null };
+export type ControlTrial = ValidControlTrial | InvalidControlTrial;
+export type ValidFocusTrial = ValidTrialBase & { kind: 'focus'; condition: 'visualSearch'; stimulusId: string; correctTargetId: string; selectedTargetId: string | null; reactionTimeMs: number | null; correct: boolean };
+export type InvalidFocusTrial = InvalidTrialBase & { kind: 'focus'; condition: 'visualSearch'; stimulusId: string; correctTargetId: string; selectedTargetId?: string | null; reactionTimeMs?: number | null; correct?: boolean };
+export type FocusTrial = ValidFocusTrial | InvalidFocusTrial;
+export type ValidTimeConditionTrial = ValidTrialBase & { kind: 'timeCondition'; condition: 'plain' | 'distracted'; targetDurationMs: 3000; observedDurationMs: number };
+export type InvalidTimeConditionTrial = InvalidTrialBase & { kind: 'timeCondition'; condition: 'plain' | 'distracted'; targetDurationMs: 3000; observedDurationMs?: null };
+export type TimeConditionTrial = ValidTimeConditionTrial | InvalidTimeConditionTrial;
+export type CenterCondition = 'plain' | 'decoratedLeft' | 'decoratedRight';
+export type DecorationSide = 'none' | 'left' | 'right';
+export type ValidCenterConditionTrial = ValidTrialBase & { kind: 'centerCondition'; condition: CenterCondition; target: Point; observed: Point; decorationSide: DecorationSide };
+export type InvalidCenterConditionTrial = InvalidTrialBase & { kind: 'centerCondition'; condition: CenterCondition; target: Point; decorationSide: DecorationSide; observed?: null };
+export type CenterConditionTrial = ValidCenterConditionTrial | InvalidCenterConditionTrial;
+export type ValidBalanceThreeWayTrial = ValidTrialBase & { kind: 'balanceThreeWay'; cutPositions: [number, number] };
+export type InvalidBalanceThreeWayTrial = InvalidTrialBase & { kind: 'balanceThreeWay'; cutPositions?: null };
+export type BalanceThreeWayTrial = ValidBalanceThreeWayTrial | InvalidBalanceThreeWayTrial;
+export type ValidControlConditionTrial = ValidTrialBase & { kind: 'controlCondition'; condition: 'predictable' | 'surprise'; targetPosition: number; observedPosition: number; initialSpeedNormalized: number; finalSpeedNormalized: number; speedChangeAtNormalizedTime: number | null };
+export type InvalidControlConditionTrial = InvalidTrialBase & { kind: 'controlCondition'; condition: 'predictable' | 'surprise'; targetPosition: number; initialSpeedNormalized: number; finalSpeedNormalized: number; speedChangeAtNormalizedTime: number | null; observedPosition?: null };
+export type ControlConditionTrial = ValidControlConditionTrial | InvalidControlConditionTrial;
+export type ValidSpatialMemoryTrial = ValidTrialBase & { kind: 'spatialMemory'; shownPositions: Point[]; selectedPositions: Point[]; exposureDurationMs: number; responseTimeMs: number };
+export type InvalidSpatialMemoryTrial = InvalidTrialBase & { kind: 'spatialMemory'; shownPositions: Point[]; selectedPositions?: Point[]; exposureDurationMs?: number; responseTimeMs?: number };
+export type SpatialMemoryTrial = ValidSpatialMemoryTrial | InvalidSpatialMemoryTrial;
+export type AnyTrial = TimeTrial | CenterTrial | BalanceTwoWayTrial | ControlTrial | FocusTrial | TimeConditionTrial | CenterConditionTrial | BalanceThreeWayTrial | ControlConditionTrial | SpatialMemoryTrial;
+
