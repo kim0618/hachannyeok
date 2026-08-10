@@ -20,6 +20,8 @@ Codex는 주로 다음을 담당한다.
 
 작업 전 다음 파일을 읽는다.
 
+- `HANDOFF.md`
+- `templates/PROGRESS.md`
 - `CLAUDE.md`
 - `docs/PRODUCT_SPEC.md`
 - `docs/SCREEN_SPEC.md`
@@ -66,3 +68,8 @@ npm run build
 - 변경사항과 회귀 위험 보고
 - 360×800 수준 작은 화면의 레이아웃 검토
 - 검사 중 백그라운드 이동, 빠른 연속 탭, 재시도 흐름 검토
+
+## Handoff
+
+- 단계 완료 후 `HANDOFF.md`와 `templates/PROGRESS.md`를 갱신한다.
+- 다른 AI 도구가 이어서 작업할 수 있도록 결정사항을 세션 안에만 남기지 않는다.

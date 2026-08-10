@@ -17,7 +17,12 @@
 - create-ait-app version:
 - Apps in Toss SDK version: 3.0.2 (@apps-in-toss/web-framework, config 파일: apps-in-toss.config.ts / SDK 3.x 스키마)
 - TDS version:
-- Test command:
-- Typecheck command:
-- Lint command:
-- Build command:
+- Dev command: npm run dev
+- Typecheck command: npm run typecheck
+- Lint command: npm run lint
+- Test command: npm run test
+- Build Web command: npm run build:web
+- Build AIT command: npm run build:ait
+- Build All command: npm run build
+- Preview command: npm run preview
+- Deploy command: npm run deploy

@@ -52,6 +52,11 @@
 - ScoreBar
 - CertificationCard
 - ShareResultCard
+- AnalysisProgressCard
+- TodayAssessmentCard
+- NewInsightCard
+- AbilityChangeRow
+- FinalReportHero
 - EmptyState
 - ErrorState
 

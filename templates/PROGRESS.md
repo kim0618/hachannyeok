@@ -2,67 +2,72 @@
 
 ## 현재 단계
 
-- 단계 번호: 01 (부분)
-- 단계 이름: SDK 세대·config 스키마 확정 + 의존성 버전 고정
-- 상태: done — 이번 범위(세대 확정·버전 고정·문서 기록)만 완료. 1단계의 나머지(React 기반, TDS 범위, typecheck/lint/test/build 파이프라인)는 미착수
+- 단계 번호: 2.5
+- 단계 이름: 7일 누적 분석 제품 재설계
+- 상태: done — 제품·화면·저장·점수·카피·디자인 문서를 7개 분석일 구조로 확정. 기능 코드는 수정하지 않음
 
 ## 완료
 
-- CLAUDE.md, README.md, docs/*, templates/PROJECT_VARIABLES.md, prompts/claude/00_project_audit.md 검토
-- Apps in Toss 공식 문서 및 저장소 실제 상태 분석, 최초 12단계 계획 수립
-- Codex 리뷰 검토: critical 0건, major 6건 모두 실제 소스(`node_modules` 타입 정의, `CLAUDE.md`, `package.json`) 대조로 타당성 확인 후 계획에 반영. minor 항목은 이번 개정에 반영하지 않음(사용자 지시 범위 밖).
-- **SDK 세대 확정**: 공식 마이그레이션 문서(`documentation/integration/sdk-3.x.md`), npm `latest` dist-tag(3.0.2), `@apps-in-toss/devtools`가 3.0.2 단일 버전만 게시된 점, 설치된 `config.d.ts`가 문서의 3.x 스키마 표와 완전히 일치하는 점을 근거로 **3.x 세대 채택**을 확정. `apps-in-toss.config.ts`는 이미 3.x 스키마를 정확히 따르고 있어 수정 없음.
-- `CLAUDE.md`의 "SDK 2.x 계열" 문구를 "3.x 계열 (web-framework 3.0.2)"로 정정, `package.json`의 `"latest"`를 `"3.0.2"`로 고정, `package-lock.json` 최소 갱신(1줄), `templates/PROJECT_VARIABLES.md`에 SDK 버전·config 파일명 기록
-- `npm run build`로 검증 (tsc/vite build/ait build 모두 통과)
+- **1단계**: Apps in Toss SDK 3.x 채택 및 `@apps-in-toss/web-framework@3.0.2` 고정
+- **2단계**: React 18.3.1 최소 기반, ESLint/Vitest, Vite/devtools unplugin, typecheck/lint/test/build 파이프라인 구성
+- **2단계 Codex 최종 검수**: Critical 0건, Major 0건, Minor 문서 불일치 3건 정리 완료
+- **2.5단계 제품 재설계**: 기존 1회성 검사 구조를 DAY 1 종합검사 → DAY 2~6 추가 분석 → DAY 7 최종 분석 구조로 문서에 반영
+- `docs/PRODUCT_SPEC.md`: 제품 정의, 7일 의미, 각 분석일 결과, 상태 머신, 재방문·공유·제외 범위 확정
+- `docs/SCREEN_SPEC.md`: STATE A~F 홈 CTA, DAY 1 기본 결과, 추가 분석, 최종 사용설명서, 오류·빈 상태 확정
+- `docs/STORAGE_SPEC.md`: `schemaVersion`, 사용자 상태, baseline/current 데이터, daily 기록, 날짜·중복·중단·실패·손상·마이그레이션 계약 확정
+- `docs/SCORING_SPEC.md`: DAY 1 baseline 보존, 관련 능력만 증분 업데이트, 유형 안정성, DAY 7 최종 분석 원칙 확정
+- `docs/COPY_GUIDE.md`: 자기 발견 중심 재방문 카피와 출석·손실 압박 금지 확정
+- `docs/DESIGN_SYSTEM.md`: 누적 분석에 필요한 문서상 컴포넌트 개념 추가
 
-## Codex 리뷰 반영 내역
+## 확정된 제품 방향
 
-**1단계 Codex 검수 완료**: Critical 0건, Major 0건. SDK 3.0.2 고정 상태와 `npm run build` 통과 및 AIT 번들 생성 상태를 확인했으며, 다음 단계 진행 가능.
+- Apps in Toss용 비게임 행동 기반 검사 앱
+- 서버, DB, 로그인, 랭킹, 친구 전적 없음
+- DAY 1은 약 90초의 종합검사이며 그 자체로 완결된 기본 분석 제공
+- DAY 2~6은 서로 다른 로컬 날짜에 하루 하나의 10~20초 추가 분석 제공
+- DAY 7은 최종 분석과 최종 하찮력 사용설명서 제공
+- DAY는 연속 달력 출석이 아니라 완료한 분석일 순서이며 놓친 날의 손실 없음
+- 재방문 보상은 포인트가 아니라 새롭게 확인되는 자기 정보
+- 포인트, 코인, 캐릭터 성장, 연속 출석 보상, 승패, 랜덤 결과 금지
 
-**분류 조정**: "React 미설치"는 치명이 아니라 major로 재분류. 근거: vanilla TS도 Vite+`ait build`로 빌드 자체는 가능해 실행 조건을 막는 결함이 아니며, React는 이 프로젝트가 선택한 고정 기술 요구사항(`CLAUDE.md` 2절)일 뿐 SDK의 절대 요건은 아님. (실제 설치 SDK 3.0.2의 `apps-in-toss.config.ts` 타입에는 React 의존이 없음을 직접 확인.)
+## 현재 소스 상태
 
-**반영한 major 6건** (모두 소스 대조로 확인됨):
-1. SDK 세대/설정 스키마 미확정 — `CLAUDE.md`는 "WebView SDK 2.x 계열" 고정(17행)인데 설치본은 3.0.2, `package.json`은 `"latest"`로 미고정. 게다가 `devtools`의 mock/unplugin 타입(`webViewProps.type: 'partner' | 'game'`, `granite.config.ts` 기준)과 실제 3.0.2 `apps-in-toss.config.ts` 타입(`navigationBar`/`webView`/`webBundleDir`, `webViewProps` 없음) 사이에 스키마 세대 차이가 실재함을 직접 확인. → 1단계로 승격.
-2. 결과 엔진(공통 측정 계약)을 검사 UI보다 나중에 두면 재작업 위험 — 정규화 좌표 규칙(`SCORING_SPEC.md` 50행, `CLAUDE.md` 53행)이 각 검사 앞에 고정되어야 함. → 공통 계약을 검사 구현보다 앞으로 이동.
-3. 저장을 10단계까지 미루면 세션 상태·복구 흐름 누락 — `Storage.getItem`/`setItem`이 `Promise` 기반임을 타입 정의로 직접 확인, 동기 처리 가정 시 초기 렌더링 경쟁 위험 실재. → 저장 "인터페이스"만 기반 단계로 승격, 구현은 후반 유지.
-4. 모바일 WebView 측정 위험(safe area, 좌표 변환, pointer/touch 이벤트 기준, 백그라운드 무효화)이 계획에 명시되지 않음 — 이 앱의 핵심 검사 3종(중심/균형/통제)이 터치 좌표 정확도에 직접 의존하므로 타당. → 기반 단계 계약에 포함, 각 검사 단계에서 테스트.
-5. 빌드/테스트 절차가 명령 이름뿐 — 실제로 `test`/`lint` 스크립트가 없고 `build`가 `tsc && vite build && ait build` 한 덩어리라 실패 지점 구분 불가함을 확인. → 전용 단계로 승격, 3단계 분리 검증 명시.
-6. "사용자 식별키" 항목을 제품 구현 과제처럼 방치하면 범위 확대 위험 — `PRODUCT_SPEC.md`(55행)의 서버·로그인·외부 DB 제외 원칙과 충돌 가능. → 콘솔/운영 항목인지 런타임 SDK 호출인지 먼저 구분하는 가드레일을 최종 통합 단계에 명시.
+- `src`에는 React 최소 기반만 존재
+- `App.tsx`는 placeholder
+- 홈 UI, 검사, 점수 엔진, Storage, 공유, 7일 누적 분석 기능은 아직 미구현
+- 2.5단계에서는 소스·패키지·빌드 설정을 수정하지 않음
 
-**반영하지 않음(minor, 사용자 지시 범위 밖)**: TDS 최소 설치 범위, 라우터 대신 discriminated union, 에러 바운더리 세분화, devtools 유지보수 종료(README에서 "더 이상 유지보수되지 않습니다" 직접 확인됨 — 사실이지만 minor 항목이라 계획 구조는 바꾸지 않음), 오늘의 검사 MVP 분리(단, 이는 `PRODUCT_SPEC.md` 49행 자체가 이미 선택 기능으로 명시하고 있어 계획에는 반영해 후순위로 분리).
+## 현재 문제와 제약
 
-## 현재 문제
+- TDS 미설치 — 실제 UI 착수 시 실사용 컴포넌트 기준으로 최소 도입
+- 브랜드 색상은 `apps-in-toss.config.ts`의 `#3182F6`과 문서의 `#5B8DEF`가 아직 불일치
+- `typescript-eslint@8.66.0`은 TypeScript `<6.1.0` peer 범위이므로 TypeScript 업그레이드 시 재확인 필요
+- `@vitejs/plugin-react@6.0.5` 설치에 `--legacy-peer-deps`를 1회 사용했으며 지속 설정과 `.npmrc`는 없음
+- `hachannyeok.ait`는 `ait build`가 생성하는 Apps in Toss 배포용 번들이며 `*.ait`는 `.gitignore`로 제외
+- `ait build`가 출력하는 `deploymentId`의 정확한 네트워크 의미는 공식 근거 미확인
+- 서버가 없으므로 기기 변경·앱 데이터 삭제 후 기록 복구나 동기화를 제공할 수 없음
 
-- ~~[major] SDK 세대·config 스키마 미확정~~ → **해결됨** (3.x 세대 확정, 근거는 위 "완료" 참고)
-- **[major] React 미설치** (분류: 치명→major) — `src/`가 vite vanilla-ts 기본 템플릿 상태. 이번 단계 범위 밖, 1단계 잔여 작업으로 이월
-- TDS 미설치, 테스트/린트 도구 없음, 브랜드 색상 불일치(`#3182F6` vs `#5B8DEF`), devtools unplugin 미연동 — 1단계 잔여 작업으로 이월
-- `templates/PROJECT_VARIABLES.md`의 Node/npm/TDS 버전, 각 명령어 항목은 여전히 공란(이번 승인 범위는 SDK 버전·config 파일명만)
-- `hachannyeok.ait` 용도 미확인(추측하지 않음), "사용자 식별키" 범위는 12단계에서 가드레일과 함께 재확인
-- `ait build` 실행 시 로컬 산출물과 함께 `deploymentId`가 출력됨(예: `019fd638-...`) — 네트워크 부작용 여부는 공식 문서로 확인되지 않아 단정하지 않음, 다음 단계에서 필요 시 재확인
+## 다음 작업
 
-## 다음 작업 (개정된 12단계 계획)
+### 3단계 — 공통 측정·저장·세션 계약 구현
 
-1. **SDK 세대·config 스키마 확정 + 의존성 버전 고정** — ✅완료(3.x 확정, 버전 고정, 문서 기록). **잔여**: React 최소 기반 전환, TDS 사용 범위 확정, typecheck/lint/test/build 파이프라인 구성
-2. **React 최소 기반 + TDS 사용 범위 + typecheck/lint/test/build 파이프라인 구성** — vanilla → React 전환, TDS는 실사용 컴포넌트만 최소 도입, `tsc`/`vite build`/`ait build`를 분리 검증 가능한 스크립트로 정리, vitest+린터 신설
-3. **공통 측정 계약 확정** — `AbilityScores`/`MetaTraits` 등 공통 타입, 정규화 좌표 규칙, 회차·무효 시도 표현, 시간측정·백그라운드 무효화 규칙, 점수 함수 입력 경계, 저장 인터페이스(비동기 Storage 어댑터, 실패 시 메모리 유지 정책), 모바일 좌표 변환 계약(safe area, `getBoundingClientRect`, pointerdown 기준) 정의. 화면 전환 구조와 세션 상태 포함
-4. **점수 엔진 골격 + 경계값 단위 테스트** — 순수 함수로 작성, 빈 입력/NaN/무효 시도 테스트
-5. **홈 · 검사 안내 · 빈 흐름** UI
-6. **시간 감각 검사** — fake timer, 백그라운드 전환 무효화 테스트
-7. **공간 검사(중심 인지 · 균형 분배)** — 좌표 정규화 테스트
-8. **통제·집중 검사(손가락 통제 · 시각 집중)** — 연속 입력, 난이도/반응시간 결정성 테스트
-9. **결과 엔진 완성 + 종합 결과 · 상세 분석 UI**
-10. **Apps in Toss Storage 구현** — 마이그레이션·저장 실패·초기화 테스트
-11. **공식 공유(Share) API 구현** — 취소·미지원 환경 처리 (오늘의 검사 등 선택 기능은 MVP 이후 별도 검토, `PRODUCT_SPEC.md` 49행)
-12. **앱인토스 통합 점검 + 최종 QA·릴리즈 준비** — navigationBar/권한/사용자 식별 가드레일(런타임 식별자 저장·전송이 필요하면 서버 없음 원칙과 충돌하므로 범위 확정 전 사용자 확인) 확인, Sandbox 실기기 QA, `.ait` 빌드 산출물 검사
+코드로 먼저 고정할 계약:
 
-각 단계 종료 시 해당 단계에서 실제로 존재하는 typecheck/lint/test/build 명령을 실행하고 결과를 정확히 보고, 통과 후에만 다음 단계로 진행. 오늘의 검사·이전 결과 대비 변화·주간 요약은 12단계까지의 MVP 완료 후 별도 검토.
+1. `AbilityScores`, `MetaTraits`, raw trial, invalid trial 타입
+2. DAY 1 baseline과 DAY 2~6 증분 측정 레코드
+3. `UserState` STATE A~F 파생 함수와 화면 전환 상태
+4. 로컬 날짜 키, 하루 중복 방지, 분석일 순서 결정 함수
+5. Apps in Toss Storage 비동기 어댑터와 `schemaVersion` 마이그레이션 골격
+6. 저장 실패 시 메모리 유지, 중단·재개, idempotent 완료 저장 계약
+7. 좌표 정규화, 시간 측정, 백그라운드 무효화 계약
+
+3단계에서는 UI나 개별 검사 완성을 앞당기지 않고 공통 계약과 단위 테스트를 우선한다.
 
 ## 마지막 검증
 
-- typecheck: `npm run build`에 포함된 `tsc` 통과 (별도 typecheck 스크립트 없음)
-- lint: 미실행 (lint 스크립트 자체가 아직 없음)
-- test: 미실행 (test 스크립트 자체가 아직 없음)
-- build: `npm run build` 통과 (`tsc && vite build && ait build`, `dist/` 산출물 및 `hachannyeok.ait` 정상 생성)
+- 2단계 코드 검증: typecheck/lint/test/build:web/build:ait/build 모두 통과
+- 2.5단계: 문서 전용 변경
+- `git diff --check`: 통과
 
 ## 마지막 커밋
 

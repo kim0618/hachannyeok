@@ -4,7 +4,7 @@ Apps in Toss MCP와 공식 비게임 출시 가이드로 프로젝트를 점검�
 
 확인 항목:
 
-- granite.config.ts 실제 appName/displayName/brand
+- apps-in-toss.config.ts 실제 appName/displayName/brand
 - TDS 및 내비게이션 사용
 - 더보기·뒤로가기·공유 동작
 - 권한이 불필요하게 선언되지 않았는지
