@@ -1,14 +1,22 @@
+import { useEffect } from 'react';
 import { PrimaryButton } from '../../../components/PrimaryButton';
 import type { MeasurementClock } from '../time/useTimeTrial';
 import { CENTER_SHAPE_LABELS, centerDistanceError } from './centerMeasurement';
 import { useCenterAssessment } from './useCenterAssessment';
+import type { Day1RawResult } from '../../../domain/assessment/results';
+import type { LocalDateKey } from '../../../domain/progression/types';
+import { toLocalDateKey } from '../../../domain/progression/localDate';
 
-interface Props { onNext: () => void; clock?: MeasurementClock; dateNow?: () => Date; createTrialId?: () => string }
+interface Props { onComplete: (result: Extract<Day1RawResult, { assessmentType: 'day1_center' }>) => void; clock?: MeasurementClock; dateNow?: () => Date; createTrialId?: () => string; baselineSessionDateKey?: LocalDateKey; onDateInvalidated?: () => void }
 const formatError = (error: number) => `${(error * 100).toFixed(1)}%`;
 
 export function CenterAssessmentScreen(props: Props) {
   const assessment = useCenterAssessment(props);
   const { phase, trials, lastTrial, validTrials } = assessment;
+  const { baselineSessionDateKey, onDateInvalidated, dateNow } = props;
+  useEffect(() => {
+    if (onDateInvalidated && (phase === 'dateInvalidated' || (baselineSessionDateKey && toLocalDateKey((dateNow ?? (() => new Date()))()) !== baselineSessionDateKey))) onDateInvalidated();
+  }, [baselineSessionDateKey, dateNow, onDateInvalidated, phase]);
   if (phase === 'running' && assessment.activeShape) {
     const shape = assessment.activeShape;
     return <div className="screen center-screen center-running"><header className="progress-header"><span>2 / 5 · 중심 감각</span><span>{Math.min(trials.length + 1, 3)} / 3</span></header><section className="center-stage"><div className={`center-shape center-shape-${shape}`} role="application" aria-label="도형의 가운데라고 생각하는 위치를 선택" aria-describedby="center-running-instruction" onPointerDown={(event) => assessment.selectPosition(event, event.currentTarget.getBoundingClientRect())} /><p id="center-running-instruction">가운데라고 느끼는 곳을 눌러주세요.</p></section></div>;
@@ -19,7 +27,7 @@ export function CenterAssessmentScreen(props: Props) {
   if (phase === 'complete') {
     const errors = validTrials.map((trial) => centerDistanceError(trial.observed));
     const bestIndex = errors.indexOf(Math.min(...errors));
-    return <div className="screen center-screen summary-screen"><header className="progress-header"><span>두 번째 측정</span><span>2 / 5</span></header><section className="summary-content" aria-labelledby="center-complete-title"><p className="eyebrow">측정 완료</p><h1 id="center-complete-title">중심 감각 측정 완료</h1><div className="result-summary"><div><span>평균 중심 오차</span><strong>{formatError(errors.reduce((sum, value) => sum + value, 0) / errors.length)}</strong></div><div><span>가장 정확했던 도형</span><strong>{CENTER_SHAPE_LABELS[validTrials[bestIndex].shapeId]}</strong></div></div></section><div className="bottom-action"><PrimaryButton onClick={props.onNext}>다음 측정</PrimaryButton></div></div>;
+    return <div className="screen center-screen summary-screen"><header className="progress-header"><span>두 번째 측정</span><span>2 / 5</span></header><section className="summary-content" aria-labelledby="center-complete-title"><p className="eyebrow">측정 완료</p><h1 id="center-complete-title">중심 감각 측정 완료</h1><div className="result-summary"><div><span>평균 중심 오차</span><strong>{formatError(errors.reduce((sum, value) => sum + value, 0) / errors.length)}</strong></div><div><span>가장 정확했던 도형</span><strong>{CENTER_SHAPE_LABELS[validTrials[bestIndex].shapeId]}</strong></div></div></section><div className="bottom-action"><PrimaryButton onClick={() => props.onComplete({ assessmentType: 'day1_center', trials })}>다음 측정</PrimaryButton></div></div>;
   }
   if (phase === 'dateInvalidated' || phase === 'incomplete') {
     const dateChanged = phase === 'dateInvalidated';

@@ -1,10 +1,13 @@
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { PrimaryButton } from '../../../components/PrimaryButton';
 import type { MeasurementClock } from '../time/useTimeTrial';
 import { balanceError, closerOrientation, normalizeDividerPosition, type RectLike } from './balanceMeasurement';
 import { useBalanceAssessment } from './useBalanceAssessment';
+import type { Day1RawResult } from '../../../domain/assessment/results';
+import type { LocalDateKey } from '../../../domain/progression/types';
+import { toLocalDateKey } from '../../../domain/progression/localDate';
 
-interface Props { onNext: () => void; clock?: MeasurementClock; dateNow?: () => Date; createTrialId?: () => string }
+interface Props { onComplete: (result: Extract<Day1RawResult, { assessmentType: 'day1_balance_two_way' }>) => void; clock?: MeasurementClock; dateNow?: () => Date; createTrialId?: () => string; baselineSessionDateKey?: LocalDateKey; onDateInvalidated?: () => void }
 const formatError = (error: number) => `${(error * 100).toFixed(1)}%`;
 const orientationLabel = { vertical: '세로 나누기', horizontal: '가로 나누기' } as const;
 
@@ -16,6 +19,10 @@ export function BalanceAssessmentScreen(props: Props) {
     if (result.ok) assessment.moveDivider(result.ratio);
   };
   const { phase, trials, lastTrial, validTrials } = assessment;
+  const { baselineSessionDateKey, onDateInvalidated, dateNow } = props;
+  useEffect(() => {
+    if (onDateInvalidated && (phase === 'dateInvalidated' || (baselineSessionDateKey && toLocalDateKey((dateNow ?? (() => new Date()))()) !== baselineSessionDateKey))) onDateInvalidated();
+  }, [baselineSessionDateKey, dateNow, onDateInvalidated, phase]);
 
   if (phase === 'running') {
     const vertical = assessment.orientation === 'vertical';
@@ -28,7 +35,7 @@ export function BalanceAssessmentScreen(props: Props) {
   if (phase === 'complete') {
     const meanError = validTrials.reduce((sum, trial) => sum + balanceError(trial.observedRatio), 0) / validTrials.length;
     const closer = closerOrientation(trials);
-    return <div className="screen balance-screen summary-screen"><header className="progress-header"><span>세 번째 측정</span><span>3 / 5</span></header><section className="summary-content" aria-labelledby="balance-complete-title"><p className="eyebrow">측정 완료</p><h1 id="balance-complete-title">균형 분배 측정 완료</h1><div className="result-summary"><div><span>평균 분배 오차</span><strong>{formatError(meanError)}</strong></div><div><span>더 정확했던 방향</span><strong>{closer === null ? '확인 불가' : orientationLabel[closer]}</strong></div></div></section><div className="bottom-action"><PrimaryButton onClick={props.onNext}>다음 측정</PrimaryButton></div></div>;
+    return <div className="screen balance-screen summary-screen"><header className="progress-header"><span>세 번째 측정</span><span>3 / 5</span></header><section className="summary-content" aria-labelledby="balance-complete-title"><p className="eyebrow">측정 완료</p><h1 id="balance-complete-title">균형 분배 측정 완료</h1><div className="result-summary"><div><span>평균 분배 오차</span><strong>{formatError(meanError)}</strong></div><div><span>더 정확했던 방향</span><strong>{closer === null ? '확인 불가' : orientationLabel[closer]}</strong></div></div></section><div className="bottom-action"><PrimaryButton onClick={() => props.onComplete({ assessmentType: 'day1_balance_two_way', trials })}>다음 측정</PrimaryButton></div></div>;
   }
   if (phase === 'dateInvalidated' || phase === 'incomplete') {
     const dateChanged = phase === 'dateInvalidated';

@@ -4,11 +4,11 @@
 
 ## 1. Current Phase
 
-- 현재 단계: **10단계 — DAY 1 시각 집중 검사 구현 완료, 코드 리뷰 대기**
-- 다음 단계: **10단계 독립 코드 리뷰**
+- 현재 단계: **13.5단계 — DAY 2 UX/측정 강도 보정 완료**
+- 다음 단계: **DAY 2 실기 QA**
 - `src/domain`에 문서의 calibration, math, raw union/runtime validation, completion, LocalDateKey/STATE, session/checkpoint, persisted schema/migration/idempotency/StoragePort 및 scoring engine 타입 경계를 구현함
 - Calibration/math/normalizer부터 baseline·daily·final score, stability, tendency, DAY 7 selector, profile, certification, final metric, Cross Insight, raw replay `deriveAnalysis`까지 구현함
-- 최초 사용자 홈/검사 안내와 DAY 1의 Time → Center → Balance → Control → Focus 행동 검사를 구현함. 실제 DAY 1 결과 orchestration, 한국어 결과 content table, Apps in Toss Storage adapter는 아직 구현하지 않음
+- 최초 사용자 홈/검사 안내, DAY 1의 Time → Center → Balance → Control → Focus 행동 검사와 raw 결과 orchestration/기본 분석 결과서를 구현함. Apps in Toss Storage adapter는 아직 구현하지 않음
 
 ## 2. Product Direction
 
@@ -68,7 +68,7 @@
 - `src/domain/session`: lifecycle transition과 DAY 1 checkpoint/date-change discard helper
 - `src/domain/storage`: persisted root/record 타입, runtime schema, migration skeleton, semantic idempotency, SDK 비결합 StoragePort
 - domain 회귀 테스트 45개와 기존 React smoke test 1개가 통과함
-- 홈/검사/결과 UI, 실제 점수 계산 및 profile/insight 콘텐츠 엔진, 실제 SDK adapter는 미구현
+- 홈/검사와 DAY 1 기본 결과 UI 및 실제 점수/profile/certification 표시 content는 구현됨. DAILY/FINAL UI와 실제 SDK adapter는 미구현
 
 ## 6. Files To Read Before Work
 
@@ -254,3 +254,98 @@
 - 52px 이상 동일 touch target, 정답을 노출하지 않는 `선택지 n` aria-label, 텍스트 정오답 결과와 focus-visible을 적용함
 - Focus 완료 CTA를 `기본 분석 준비` placeholder에 연결함. Storage persistence와 실제 score/profile/certification 결과는 추가하지 않음
 - 10단계 독립 코드 리뷰 대기
+
+## 21. 11단계 DAY 1 결과 취합 및 기본 분석 결과 화면 구현 결과
+
+- Time/Center/Balance/Control/Focus 완료 callback을 raw `Day1RawResult` 전달 계약으로 확장하고 App session memory의 `BaselineDraft`에 다섯 결과를 보존함
+- domain completion validator로 다섯 결과를 확인한 뒤 고정 assessment order의 `BaselineRecord`를 생성함. `sessionId`, 안정적 `recordId`, 시작/완료 timestamp와 공유 `LocalDateKey`를 사용함
+- baseline만 가진 최소 valid `PersistedAppData`로 기존 `deriveAnalysis()`를 호출하며 StoragePort, localStorage, IndexedDB, Apps in Toss Storage 저장은 연결하지 않음
+- `OVERALL_SCORE_VERSION = 1`, 다섯 Ability 동일 가중 평균 `deriveOverallScore()`, 대표 자격 tier→score→Ability order selector 계약과 순수 helper를 추가함
+- 확정된 profile high/low 문구, variant badge와 ability/tier별 certification 표시 table을 presentation layer에 구현하고 engine key를 사용자에게 노출하지 않음
+- 실제 overall/5 Ability/profile/대표 자격, raw 측정 근거, 강점·보완, 기본 사용설명서와 분석 진행 상태를 포함한 정밀 결과 화면으로 Basic Analysis placeholder를 교체함
+- DAY 1 Primary `결과 공유하기`는 시각적 위계를 유지하되 실제 share SDK 없이 disabled/준비 중 상태로 제공함
+- baseline 누락과 `insufficientEvidence`/`calculationFailure`를 0점으로 대체하지 않고 별도 안전 화면으로 처리함
+- domain-valid 5-result fixture, aggregation/order/runtime validation, overall, representative certification, profile content, 결과 UI와 Focus→실제 결과 navigation 테스트를 추가함
+- 기존 다섯 measurement protocol의 grid/config/speed/geometry/timing은 변경하지 않았고 새 dependency도 추가하지 않음
+- 전체 검증: typecheck, lint, 29 files / 201 tests, build:web, build:ait, build, `git diff --check` 통과
+- 11단계 독립 코드 리뷰에서 Critical 1건, Major 0건, Minor 1건을 확인함
+
+## 22. 11단계 독립 코드 리뷰 수정 및 종료
+
+- Critical이었던 App-level DAY 1 날짜 경계를 보강해 baseline session 시작 `LocalDateKey`를 다섯 assessment 전체에서 공유함
+- 각 assessment의 진입/phase 변화와 완료 callback에서 현재 날짜를 공유 session 날짜와 비교하고, mismatch result는 draft에 추가하기 전에 거부함
+- 날짜 불일치 또는 assessment 자체 `dateInvalidated` 감지 시 `BaselineDraft`, session identity, baseline candidate와 derived analysis를 즉시 폐기하고 전용 재시작 안내로 이동함
+- 한 번 폐기된 session은 날짜가 원래 key로 돌아와도 복구하지 않으며, 재시작 뒤 새 `sessionId`, 빈 draft와 새 시작 날짜로 DAY 1을 시작함
+- Focus 완료 직전에도 날짜를 다시 검사해 다른 날짜 raw evidence로 `BaselineRecord`나 분석이 생성되지 않도록 final safeguard를 유지함
+- Minor였던 `상세 분석 보기`는 가짜 이동 대신 disabled와 명확한 `준비 중` 상태로 변경함
+- 일반 cross-date, 날짜 원복, Focus final safeguard, 새 session, calculationFailure 안전 화면, Focus 정답 0개 evidence와 deterministic UI 회귀 테스트를 추가함
+- 전체 검증: typecheck, lint, 29 files / 208 tests, build:web, build:ait, build 및 `git diff --check` 통과
+- 11단계를 종료하고 2차 실기 QA 진행 가능
+
+## 23. 12단계 Apps in Toss Storage persistence 구현 결과
+
+- 설치된 `@apps-in-toss/web-framework@3.0.2` 타입과 공식 개발자센터에서 `Storage` root import 및 `getItem`/`setItem`/`removeItem`/`clearItems` Promise 계약을 대조해 일치를 확인함
+- `AppsInTossStorageAdapter`가 고정 key `hachannyeok.profile.v1`의 문자열 JSON 직렬화, parse, migration, current runtime validation과 SDK reject 변환을 담당함
+- 앱 전용 초기화는 다른 SDK key를 삭제하지 않도록 `removeItem`을 사용하며 config permission 변경과 새 dependency는 없음
+- App mount의 loading/loaded/loadError/corruptData를 분리해 최초 사용자 Home flash를 막고, valid baseline은 persisted raw evidence에서 `deriveAnalysis()`로 재생성함
+- DAY 1 완료 시 runtime-valid `BaselineRecord`를 idempotency helper로 확인한 뒤 root save하며, 실패 시 `computedPendingSave`에 해당하는 동일 record/data를 메모리에 유지하고 `다시 저장`을 제공함
+- 같은 recordId/동일 payload는 idempotent success, 다른 payload는 `recordConflict`로 기존 record를 보존함
+- DAY 1 완료 assessment checkpoint는 기존 `activeBaselineSession` shape까지만 저장하고 같은 날짜 mount에서 다음 assessment로 복원함
+- baseline 날짜와 오늘 날짜로 기존 `deriveUserState`를 사용해 same-day STATE B, 다음 날짜 STATE C, 날짜 역행 신규 unlock 금지를 적용함. DAY 2 CTA는 disabled 준비 상태이며 실제 검사는 미구현
+- 손상/future schema는 결과 계산과 자동 삭제를 막고 명시적 확인 뒤 기록 초기화를 제공함. clear 실패 시 기존 memory/storage 결과를 유지함
+- 테스트용 `MemoryStorageAdapter`는 load/save/clear/failure injection을 제공하며 SDK adapter는 얇은 wrapper 테스트로 검증함
+- persisted root에는 raw baseline/session/metadata만 저장하고 overall/ability/profile/certification/insight/BasicAnalysis view model 및 production localStorage를 사용하지 않음
+- 기존 5개 assessment protocol, calibration, scoring formula와 measurement evidence는 변경하지 않음
+- 자동 테스트 33 files / 221 tests 통과. typecheck/lint 및 전체 build 검증 결과는 아래 마지막 검증에 기록
+- 마지막 전체 검증: typecheck, lint, 33 files / 221 tests, build:web, build:ait, build, `git diff --check` 모두 통과
+
+## 24. 12단계 독립 코드 리뷰 수정 및 종료
+
+- 독립 코드 리뷰 Critical 1건, Major 6건, Minor 0건을 수정함
+- cross-date `activeBaselineSession`을 `null`로 sanitize한 root로 영속 저장한 뒤에만 STATE A를 적용해 날짜 원복 시 옛 checkpoint가 부활하지 않게 함
+- checkpoint discard 저장 실패는 `checkpointDiscardFailed` 전용 상태와 `다시 시도` UX로 차단함
+- application/infrastructure 경계의 FIFO `StorageMutationCoordinator`로 checkpoint, final baseline, discard, retry, reset mutation을 단일 직렬 경로로 통합함
+- mutation revision과 mounted guard로 reset/unmount 이후 stale completion의 React state 반영을 차단하고, synchronous in-flight ref로 retry 중복 실행을 방지함
+- checkpoint 저장 성공 전 다음 assessment로 이동하지 않으며 실패 시 동일 root/raw/session을 보존한 `진행 기록을 저장하지 못했습니다.`/`다시 저장` UX를 제공함
+- final baseline pending-save 중에는 Basic Analysis 이탈을 막아 persisted STATE A가 노출되지 않게 함
+- initial load와 retry load가 같은 `applyLoadedData` 경로에서 sanitize, checkpoint 복원, baseline replay를 수행함
+- `recordConflict` 전용 화면에서 기존 root와 현재 pending baseline을 보존하고 기존 기록 보기 또는 확인 후 초기화만 제공함
+- checkpoint runtime schema가 `time → center → balance → control` canonical prefix만 허용하도록 강화함
+- cross-date discard/실패/날짜 원복, load retry restore, checkpoint failure/retry, conflict, mutation ordering/reset, full derived result/evidence round-trip 회귀 테스트를 추가함
+- scoring/calibration과 5개 assessment protocol, dependency/config는 변경하지 않았고 production localStorage fallback도 추가하지 않음
+- 전체 검증: typecheck, lint, 34 files / 232 tests, build:web, build:ait, build, `git diff --check` 모두 통과
+- 12단계를 종료하고 Persistence 실기 QA 진행 가능
+
+## 25. 13단계 DAY 2 시간 방해 안정성 추가 분석 구현 결과
+
+- STATE C의 `오늘의 추가 분석`을 DAY 2 Intro → Time condition assessment로 연결하고, 완료·저장 뒤 같은 날 STATE D의 `오늘의 추가 분석 완료`/`업데이트된 분석서 보기`로 전환함
+- 기존 domain 계약 `day2_time_distraction`, `TimeConditionTrial`, condition literal `plain | distracted`, target 4/minimum valid 3/condition별 최소 1/max 7을 변경 없이 재사용함
+- attempt 순서를 `plain → distracted → plain → distracted`로 고정하고 retry도 같은 sequence를 결정적으로 순환함. `Math.random`과 신규 dependency는 사용하지 않음
+- DAY 2 전용 hook은 raw unrounded duration을 monotonic `performance.now()`로 측정하고 synchronous active ref guard, background invalid, 날짜 변경 전체 restart와 visibility/date race 단일 확정을 구현함
+- distracted trial에 interaction target이 아닌 `aria-hidden` particle 4개를 서로 다른 비정수 duration으로 표시함. particle은 CTA와 분리하고 위치·속도·trajectory는 raw evidence에 저장하지 않음
+- reduced-motion에서도 동일 particle DOM과 distracted condition을 유지하되 CSS media query로 이동 거리 축소·duration 완화를 적용함. blink/flash/scale/rotation은 사용하지 않으며 정책을 QA_SPEC에 기록함
+- 완료 시 기존 `DailyRecord` 구조로 `analysisDay: 2`, 안정적 `${sessionId}:day2` recordId와 raw result를 생성하고 runtime validation을 거친 root만 저장함
+- DAY 2 mutation은 기존 `StorageMutationCoordinator`의 FIFO 저장 경로를 사용함. 실패 시 같은 record/data와 새 DerivedAnalysis를 메모리에 유지하고 `다시 저장`하며 새 recordId나 재측정을 만들지 않음
+- persisted baseline raw는 보존하고 dailyRecords에 DAY 2만 append함. `deriveAnalysis()` replay로 Time만 보정하며 Center/Balance/Control/Focus 불변과 baseline raw 불변, DAILY ±8 cap, 결정성을 테스트함
+- 결과 화면은 평소/방해 평균 absolute error, signed error 방향, distraction delta, engine tendency eligibility/fallback, Time 점수 변경/유지와 기존 baseline 관계를 표시함
+- Basic Analysis/내 분석서는 저장된 baseline+dailyRecords replay 결과와 `심화 분석 1/5`를 표시함
+- DAY 2 다음 유효 날짜는 STATE C로 해금하되 DAY 3 실제 검사는 구현하지 않고 준비 placeholder만 연결함. 날짜 역행은 기존 deriveUserState 계약대로 unlock하지 않음
+- 실제 Apps in Toss native Storage bridge의 강제 종료/재실행 QA는 이번 구현과 별개의 출시 전 실제 기기 TODO로 계속 유지함
+- 독립 코드 리뷰 결과 Critical 0건, Major 1건, Minor 0건을 확인하고 signed shift 중립 방향 표시 오류를 수정함
+- presentation helper가 signed shift를 exact `< 0 → earlier`, `> 0 → later`, `=== 0 → neutral`로 분리하며 NaN/Infinity는 정상 카피로 보내지 않음
+- absolute-error degradation eligibility는 그대로 유지하고, eligible degradation + neutral direction에서는 빠름/늦음을 만들지 않고 오차 폭 증가와 방향 불명확 카피를 표시함
+- scoring, tendency predicate, measurement protocol, Storage, DAY 1은 변경하지 않음
+- 전체 검증: typecheck, lint, 40 files / 251 tests, build:web, build:ait, build, `git diff --check` 통과
+- 13단계 DAY 2 구현 및 리뷰 수정을 종료하고 DAY 2 실기 QA 진행 가능
+
+## 26. 13.5단계 DAY 2 UX/측정 강도 보정
+
+- distracted particle 4개와 DOM/raw condition은 유지하면서 일반 motion의 이동 폭을 확대하고 particle별 다중 방향 경로를 분리함
+- 1초/3초 cue, blink/flash/scale/rotation과 CTA interaction 방해는 추가하지 않음
+- reduced-motion은 기존 media query와 동일 particle DOM을 유지하고 작은 이동 폭·느린 duration의 완화 motion을 계속 제공함
+- DAY 2 결과 primary를 plain/distracted 조건 비교로 바꾸고 2-column 카드에 평균 오차와 차이를 `ms` 단위로 표시함
+- eligibility 미달의 작은 차이는 실제 magnitude와 함께 안내하고, Time Ability 점수 변화는 별도 secondary section으로 낮춤
+- 오차가 증가했지만 Time 점수가 개선된 경우 기존 점수 결과는 유지하고 일관성도 함께 반영한다는 presentation 보조 카피만 추가함
+- scoring/calibration, DAY 1 protocol, DAY 2 raw/Storage/schema/assessmentType은 변경하지 않음
+- 35ms/45ms/+10ms fixture, small-difference copy, score secondary hierarchy, 95→96 기존 scoring 불변과 보조 카피 회귀 테스트를 추가함
+- 전체 검증: typecheck, lint, 40 files / 252 tests, build:web, build:ait, build, `git diff --check` 통과

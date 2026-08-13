@@ -63,3 +63,7 @@ DAY 1 완료 이후 baseline re-assessment/overwrite와 부분 재검사는 MVP�
 - 360×800 기준 실제 기기에서 화면 전환과 입력 시간을 포함해 확인한다.
 - DAY 6 `exposureDurationMs`나 화면 전환 시간을 제품 계약 상수로 과도하게 고정하지 않는다.
 - trial 계약을 지키면서 목표를 넘으면 trial 수는 Calibration/Product revision으로만 바꾸며 구현자가 임의 축소하지 않는다.
+
+## DAY 2 motion 접근성
+
+DAY 2 `distracted` condition은 행동 측정 조건이므로 `prefers-reduced-motion`에서도 시각적 방해를 완전히 제거하지 않는다. 대신 이동 거리와 motion intensity를 완화하며 blink/flash/scale/rotation 자극은 사용하지 않는다. 동일 particle DOM과 raw/scoring 계약을 유지하고 motion preference 자체는 raw evidence에 저장하지 않는다.

@@ -1,17 +1,26 @@
+import { useEffect } from 'react';
 import { PrimaryButton } from '../../../components/PrimaryButton';
 import { TIME_TARGET_DURATION_MS, useTimeTrial, type MeasurementClock } from './useTimeTrial';
 import { describeTimeError, formatSeconds } from './formatTimeResult';
+import type { Day1RawResult } from '../../../domain/assessment/results';
+import type { LocalDateKey } from '../../../domain/progression/types';
+import { toLocalDateKey } from '../../../domain/progression/localDate';
 
 interface TimeAssessmentScreenProps {
-  onNext: () => void;
+  onComplete: (result: Extract<Day1RawResult, { assessmentType: 'day1_time' }>) => void;
   clock?: MeasurementClock;
   dateNow?: () => Date;
   createTrialId?: () => string;
+  baselineSessionDateKey?: LocalDateKey;
+  onDateInvalidated?: () => void;
 }
 
-export function TimeAssessmentScreen({ onNext, clock, dateNow, createTrialId }: TimeAssessmentScreenProps) {
+export function TimeAssessmentScreen({ onComplete, clock, dateNow = () => new Date(), createTrialId, baselineSessionDateKey, onDateInvalidated }: TimeAssessmentScreenProps) {
   const assessment = useTimeTrial({ clock, dateNow, createTrialId });
   const { phase, trials, lastTrial, validTrials } = assessment;
+  useEffect(() => {
+    if (onDateInvalidated && (phase === 'dateInvalidated' || (baselineSessionDateKey && toLocalDateKey(dateNow()) !== baselineSessionDateKey))) onDateInvalidated();
+  }, [baselineSessionDateKey, dateNow, onDateInvalidated, phase]);
 
   if (phase === 'running') {
     return (
@@ -42,7 +51,7 @@ export function TimeAssessmentScreen({ onNext, clock, dateNow, createTrialId }: 
             <div><span>가장 가까운 기록</span><strong>{formatSeconds(closest.observedDurationMs)}</strong></div>
           </div>
         </section>
-        <div className="bottom-action"><PrimaryButton onClick={onNext}>다음 측정</PrimaryButton></div>
+        <div className="bottom-action"><PrimaryButton onClick={() => onComplete({ assessmentType: 'day1_time', trials })}>다음 측정</PrimaryButton></div>
       </div>
     );
   }

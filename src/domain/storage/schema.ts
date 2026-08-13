@@ -33,20 +33,23 @@ export function isFinalRecord(value: unknown): value is FinalRecord {
 export function isActiveBaselineSession(value: unknown): value is ActiveBaselineSession {
   if (!isRecord(value) || !isString(value.sessionId) || !isIso(value.startedAt) || !isLocalDateKey(value.startedLocalDateKey) || !Array.isArray(value.completedAssessmentIds) || !Array.isArray(value.partialRawResults)) return false;
   const results = value.partialRawResults;
-  return results.every(isCompleteResult)
+  const canonicalPrefix = DAY1_ASSESSMENT_IDS.slice(0, results.length);
+  return results.length < DAY1_ASSESSMENT_IDS.length
+    && results.every(isCompleteResult)
     && results.every((result) => DAY1_ASSESSMENT_IDS.includes(result.assessmentType as Day1RawResult['assessmentType']))
     && value.completedAssessmentIds.length === results.length
     && value.completedAssessmentIds.every((id) => DAY1_ASSESSMENT_IDS.includes(id as Day1RawResult['assessmentType']))
     && new Set(value.completedAssessmentIds).size === value.completedAssessmentIds.length
     && new Set(results.map((result) => result.assessmentType)).size === results.length
-    && value.completedAssessmentIds.every((id, index) => id === results[index]!.assessmentType);
+    && value.completedAssessmentIds.every((id, index) => id === results[index]!.assessmentType)
+    && value.completedAssessmentIds.every((id, index) => id === canonicalPrefix[index]);
 }
 
 export function isPersistedAppData(value: unknown): value is PersistedAppData {
   if (!isRecord(value) || !hasOnlyKeys(value, ['schemaVersion', 'baseline', 'dailyRecords', 'finalRecord', 'activeBaselineSession', 'metadata']) || value.schemaVersion !== 1 || !Array.isArray(value.dailyRecords) || !value.dailyRecords.every(isDaily) || !isRecord(value.metadata) || !hasOnlyKeys(value.metadata, ['firstStartedAt', 'lastSuccessfulWriteAt'])) return false;
   if ('baseline' in value && value.baseline !== undefined && !isBaseline(value.baseline)) return false;
   if ('finalRecord' in value && value.finalRecord !== undefined && !isFinalRecord(value.finalRecord)) return false;
-  if ('activeBaselineSession' in value && value.activeBaselineSession !== undefined && !isActiveBaselineSession(value.activeBaselineSession)) return false;
+  if ('activeBaselineSession' in value && value.activeBaselineSession !== undefined && value.activeBaselineSession !== null && !isActiveBaselineSession(value.activeBaselineSession)) return false;
   if (value.metadata.firstStartedAt !== undefined && !isIso(value.metadata.firstStartedAt)) return false;
   if (value.metadata.lastSuccessfulWriteAt !== undefined && !isIso(value.metadata.lastSuccessfulWriteAt)) return false;
   const baseline = value.baseline;

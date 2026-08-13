@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { migratePersistedData } from './migration';
 import { isActiveBaselineSession, isFinalRecord, validatePersistedAppData } from './schema';
+import { day1RawFixture } from '../../test/day1Fixture';
 
 const validTimeTrial = (trialId: string) => ({ trialId, startedAtMs: 0, completedAtMs: 1, valid: true as const, invalidReason: null, kind: 'time' as const, condition: 'baseline' as const, targetDurationMs: 3000 as const, observedDurationMs: 3000 });
 const completeDay1Time = { assessmentType: 'day1_time' as const, trials: [validTimeTrial('t1'), validTimeTrial('t2'), validTimeTrial('t3')] };
@@ -34,6 +35,11 @@ describe('persisted root schema와 migration', () => {
     expect(isActiveBaselineSession(checkpoint(['day1_unknown'], [completeDay1Time]))).toBe(false);
     expect(isActiveBaselineSession(checkpoint(['day1_center'], [completeDay1Time]))).toBe(false);
     expect(isActiveBaselineSession(checkpoint(['day1_time', 'day1_center'], [completeDay1Time, completeDay1Time]))).toBe(false);
+  });
+  it('checkpoint는 DAY 1 고정 순서의 canonical prefix만 허용한다', () => {
+    expect(isActiveBaselineSession(checkpoint(['day1_center'], [day1RawFixture[1]]))).toBe(false);
+    expect(isActiveBaselineSession(checkpoint(['day1_time', 'day1_balance_two_way'], [day1RawFixture[0], day1RawFixture[2]]))).toBe(false);
+    expect(isActiveBaselineSession(checkpoint(['day1_time', 'day1_center'], day1RawFixture.slice(0, 2)))).toBe(true);
   });
   it('FinalRecord outer/raw ability와 assessment arm literal을 모두 일치시킨다', () => {
     expect(isFinalRecord(finalRecord('time', 'time'))).toBe(true);

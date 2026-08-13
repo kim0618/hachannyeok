@@ -12,13 +12,13 @@ function select(clientX: number, clientY: number) {
 
 describe('CenterAssessmentScreen', () => {
   it('Ready 안내와 시작 CTA를 렌더한다', () => {
-    render(<CenterAssessmentScreen onNext={() => undefined} />);
+    render(<CenterAssessmentScreen onComplete={() => undefined} />);
     expect(screen.getByRole('heading', { name: '중심 감각' })).toBeInTheDocument();
     expect(screen.getByText(/정확한 가운데라고 느껴지는 곳/)).toBeInTheDocument();
   });
 
   it('시작 후 접근 가능한 rectangle 입력 영역과 결과 marker/텍스트를 표시한다', () => {
-    render(<CenterAssessmentScreen onNext={() => undefined} />);
+    render(<CenterAssessmentScreen onComplete={() => undefined} />);
     fireEvent.click(screen.getByRole('button', { name: '시작하기' }));
     const target = screen.getByLabelText('도형의 가운데라고 생각하는 위치를 선택');
     expect(target).toHaveClass('center-shape-rectangle');
@@ -32,7 +32,7 @@ describe('CenterAssessmentScreen', () => {
   });
 
   it('RUNNING과 RESULT에서 trial별 shape class를 동일하게 사용한다', () => {
-    render(<CenterAssessmentScreen onNext={() => undefined} />);
+    render(<CenterAssessmentScreen onComplete={() => undefined} />);
     fireEvent.click(screen.getByRole('button', { name: '시작하기' }));
     expect(screen.getByRole('application')).toHaveClass('center-shape-rectangle');
     select(99, 250);
@@ -45,9 +45,9 @@ describe('CenterAssessmentScreen', () => {
     expect(document.querySelector('.center-result-shape')).toHaveClass('center-shape-square');
   });
 
-  it('완료 요약은 valid trial만 사용하고 Balance placeholder로 연결한다', () => {
+  it('완료 요약은 valid trial만 사용하고 raw Center result를 전달한다', () => {
     const onNext = vi.fn();
-    render(<CenterAssessmentScreen onNext={onNext} />);
+    render(<CenterAssessmentScreen onComplete={onNext} />);
     fireEvent.click(screen.getByRole('button', { name: '시작하기' }));
     select(200, 250);
     fireEvent.click(screen.getByRole('button', { name: '다음 도형' }));
@@ -58,6 +58,6 @@ describe('CenterAssessmentScreen', () => {
     expect(screen.getByText('17.7%')).toBeInTheDocument();
     expect(screen.getByText('기본 사각형')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: '다음 측정' }));
-    expect(onNext).toHaveBeenCalledOnce();
+    expect(onNext).toHaveBeenCalledWith(expect.objectContaining({ assessmentType: 'day1_center', trials: expect.any(Array) }));
   });
 });

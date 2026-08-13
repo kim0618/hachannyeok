@@ -1,14 +1,22 @@
+import { useEffect } from 'react';
 import { PrimaryButton } from '../../../components/PrimaryButton';
 import type { MeasurementClock } from '../time/useTimeTrial';
 import { controlPositionError } from './controlMovement';
 import { useControlAssessment, type AnimationScheduler } from './useControlAssessment';
+import type { Day1RawResult } from '../../../domain/assessment/results';
+import type { LocalDateKey } from '../../../domain/progression/types';
+import { toLocalDateKey } from '../../../domain/progression/localDate';
 
-interface Props { onNext: () => void; clock?: MeasurementClock; dateNow?: () => Date; createTrialId?: () => string; animationScheduler?: AnimationScheduler }
+interface Props { onComplete: (result: Extract<Day1RawResult, { assessmentType: 'day1_control_constant' }>) => void; clock?: MeasurementClock; dateNow?: () => Date; createTrialId?: () => string; animationScheduler?: AnimationScheduler; baselineSessionDateKey?: LocalDateKey; onDateInvalidated?: () => void }
 const formatError = (value: number) => `${(value * 100).toFixed(1)}%`;
 
 export function ControlAssessmentScreen(props: Props) {
   const assessment = useControlAssessment(props);
   const { phase, trials, lastTrial, validTrials } = assessment;
+  const { baselineSessionDateKey, onDateInvalidated, dateNow } = props;
+  useEffect(() => {
+    if (onDateInvalidated && (phase === 'dateInvalidated' || (baselineSessionDateKey && toLocalDateKey((dateNow ?? (() => new Date()))()) !== baselineSessionDateKey))) onDateInvalidated();
+  }, [baselineSessionDateKey, dateNow, onDateInvalidated, phase]);
   if (phase === 'running') {
     const progress = trials.length < 3 ? `${trials.length + 1} / 3` : `추가 측정 ${trials.length - 2}`;
     return <div className="screen control-screen control-running"><header className="progress-header"><span>4 / 5 · 손가락 통제</span><span>{progress}</span></header><section className="control-stage" aria-label="표시가 움직이고 있습니다. 목표 위치라고 느껴질 때 멈춰 버튼을 누르세요."><div className="control-track" aria-hidden="true"><span className="control-target" style={{ left: `${assessment.activeConfig.targetPosition * 100}%` }} /><span className="control-marker" style={{ left: `${assessment.markerPosition * 100}%` }} /></div><p>목표 지점이라고 느껴지는 순간 멈춰주세요.</p></section><div className="bottom-action"><PrimaryButton onClick={assessment.stopTrial}>멈춰!</PrimaryButton></div></div>;
@@ -20,7 +28,7 @@ export function ControlAssessmentScreen(props: Props) {
   if (phase === 'complete') {
     const meanError = validTrials.reduce((sum, trial) => sum + controlPositionError(trial.observedPosition, trial.targetPosition), 0) / validTrials.length;
     const closest = validTrials.reduce((best, trial) => controlPositionError(trial.observedPosition, trial.targetPosition) < controlPositionError(best.observedPosition, best.targetPosition) ? trial : best);
-    return <div className="screen control-screen summary-screen"><header className="progress-header"><span>네 번째 측정</span><span>4 / 5</span></header><section className="summary-content" aria-labelledby="control-complete-title"><p className="eyebrow">측정 완료</p><h1 id="control-complete-title">손가락 통제 측정 완료</h1><div className="result-summary"><div><span>평균 위치 오차</span><strong>{formatError(meanError)}</strong></div><div><span>가장 정확했던 시도</span><strong>{trials.indexOf(closest) + 1}번째 측정</strong></div></div></section><div className="bottom-action"><PrimaryButton onClick={props.onNext}>다음 측정</PrimaryButton></div></div>;
+    return <div className="screen control-screen summary-screen"><header className="progress-header"><span>네 번째 측정</span><span>4 / 5</span></header><section className="summary-content" aria-labelledby="control-complete-title"><p className="eyebrow">측정 완료</p><h1 id="control-complete-title">손가락 통제 측정 완료</h1><div className="result-summary"><div><span>평균 위치 오차</span><strong>{formatError(meanError)}</strong></div><div><span>가장 정확했던 시도</span><strong>{trials.indexOf(closest) + 1}번째 측정</strong></div></div></section><div className="bottom-action"><PrimaryButton onClick={() => props.onComplete({ assessmentType: 'day1_control_constant', trials })}>다음 측정</PrimaryButton></div></div>;
   }
   if (phase === 'dateInvalidated' || phase === 'incomplete') {
     const dateChanged = phase === 'dateInvalidated';

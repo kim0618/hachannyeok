@@ -1,6 +1,8 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { App } from './App.tsx';
+import { day1RawFixture } from './test/day1Fixture.ts';
+import { addBaselineResult, type BaselineDraft } from './domain/session/baselineDraft.ts';
 
 describe('최초 사용자 진입 흐름', () => {
   it('최초 홈에 브랜드와 Primary CTA를 렌더한다', () => {
@@ -86,7 +88,7 @@ describe('최초 사용자 진입 흐름', () => {
     expect(screen.getByText('3 / 5')).toBeInTheDocument();
   });
 
-  it('Balance 완료 후 Control placeholder로 연결된다', () => {
+  it('Balance 완료 후 Control Ready로 연결된다', () => {
     let now = 0;
     vi.spyOn(performance, 'now').mockImplementation(() => { now += 3000; return now; });
     render(<App />);
@@ -133,7 +135,7 @@ describe('최초 사용자 진입 흐름', () => {
     nowSpy.mockRestore(); requestSpy.mockRestore();
   });
 
-  it('Focus 완료 후 Basic Analysis placeholder로 연결된다', () => {
+  it('선행 raw result 없이 Focus만 완료하면 누락 기록 오류 화면으로 이동한다', () => {
     let now = 0;
     const frames: FrameRequestCallback[] = [];
     const nowSpy = vi.spyOn(performance, 'now').mockImplementation(() => now);
@@ -146,8 +148,66 @@ describe('최초 사용자 진입 흐름', () => {
       fireEvent.click(screen.getByRole('button', { name: `선택지 ${choice}` }));
     });
     fireEvent.click(screen.getByRole('button', { name: '기본 분석 보기' }));
-    expect(screen.getByRole('heading', { name: '기본 분석 준비' })).toBeInTheDocument();
-    expect(screen.getByText('5개 측정을 모두 마쳤습니다.')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '측정 기록을 찾을 수 없습니다.' })).toBeInTheDocument();
     nowSpy.mockRestore(); requestSpy.mockRestore();
+  });
+
+  it('Focus 완료 후 앞선 네 raw result가 있으면 실제 Basic Analysis로 이동한다', () => {
+    let now = 0;
+    const frames: FrameRequestCallback[] = [];
+    vi.spyOn(performance, 'now').mockImplementation(() => now);
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => { frames.push(callback); return frames.length; });
+    const draft = day1RawFixture.slice(0, 4).reduce<BaselineDraft>(addBaselineResult, {});
+    render(<App initialScreen="focus-assessment" initialBaselineDraft={draft} initialSession={{ sessionId: 'session', startedAt: '2026-08-12T01:00:00.000Z', startedLocalDateKey: '2026-08-12' }} dateNow={() => new Date('2026-08-12T01:02:00.000Z')} />);
+    [2, 8, 11].forEach((choice, index) => {
+      fireEvent.click(screen.getByRole('button', { name: index === 0 ? '시작하기' : '다음 측정' }));
+      act(() => { frames.shift()?.(0); frames.shift()?.(0); }); now += 1000;
+      fireEvent.click(screen.getByRole('button', { name: `선택지 ${choice}` }));
+    });
+    fireEvent.click(screen.getByRole('button', { name: '기본 분석 보기' }));
+    expect(screen.getByText('종합 하찮력')).toBeInTheDocument();
+    expect(screen.getAllByText('기본 분석 완료')).toHaveLength(2);
+    expect(screen.queryByText('기본 분석 준비')).not.toBeInTheDocument();
+  });
+
+  it('이전 날짜 Time draft로 다음 assessment에 진입하면 전체 DAY 1을 즉시 폐기한다', async () => {
+    const draft = addBaselineResult({}, day1RawFixture[0]!);
+    render(<App initialScreen="center-assessment" initialBaselineDraft={draft} initialSession={{ sessionId: 'old-session', startedAt: '2026-08-12T01:00:00.000Z', startedLocalDateKey: '2026-08-12' }} dateNow={() => new Date('2026-08-13T01:00:00.000Z')} />);
+    expect(await screen.findByRole('heading', { name: '날짜가 변경되어 측정을 다시 시작해야 합니다.' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: '중심 감각' })).not.toBeInTheDocument();
+  });
+
+  it('날짜 invalidation 뒤 원래 날짜로 돌아와도 이전 draft를 복구하지 않고 새 session을 만든다', async () => {
+    let date = new Date('2026-08-13T01:00:00.000Z');
+    const createSessionId = vi.fn(() => 'new-session');
+    const draft = addBaselineResult({}, day1RawFixture[0]!);
+    render(<App initialScreen="center-assessment" initialBaselineDraft={draft} initialSession={{ sessionId: 'old-session', startedAt: '2026-08-12T01:00:00.000Z', startedLocalDateKey: '2026-08-12' }} dateNow={() => date} createSessionId={createSessionId} />);
+    expect(await screen.findByRole('heading', { name: '날짜가 변경되어 측정을 다시 시작해야 합니다.' })).toBeInTheDocument();
+    date = new Date('2026-08-12T02:00:00.000Z');
+    fireEvent.click(screen.getByRole('button', { name: '처음부터 다시 측정' }));
+    expect(screen.getByRole('heading', { name: '측정 전에 잠깐' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '측정 시작' }));
+    fireEvent.click(screen.getByRole('button', { name: '첫 번째 시간 감각 측정 시작 준비' }));
+    expect(createSessionId).toHaveBeenCalledOnce();
+    expect(screen.getByRole('heading', { name: /시작하면 시간이/ })).toBeInTheDocument();
+  });
+
+  it('Focus 완료 직전 날짜가 달라지면 final safeguard가 BaselineRecord 생성을 막는다', async () => {
+    let date = new Date('2026-08-12T01:00:00.000Z');
+    let now = 0;
+    const frames: FrameRequestCallback[] = [];
+    vi.spyOn(performance, 'now').mockImplementation(() => now);
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => { frames.push(callback); return frames.length; });
+    const draft = day1RawFixture.slice(0, 4).reduce<BaselineDraft>(addBaselineResult, {});
+    render(<App initialScreen="focus-assessment" initialBaselineDraft={draft} initialSession={{ sessionId: 'session', startedAt: '2026-08-12T01:00:00.000Z', startedLocalDateKey: '2026-08-12' }} dateNow={() => date} />);
+    [2, 8, 11].forEach((choice, index) => {
+      fireEvent.click(screen.getByRole('button', { name: index === 0 ? '시작하기' : '다음 측정' }));
+      act(() => { frames.shift()?.(0); frames.shift()?.(0); }); now += 1000;
+      fireEvent.click(screen.getByRole('button', { name: `선택지 ${choice}` }));
+    });
+    date = new Date('2026-08-13T01:00:00.000Z');
+    fireEvent.click(screen.getByRole('button', { name: '기본 분석 보기' }));
+    expect(await screen.findByRole('heading', { name: '날짜가 변경되어 측정을 다시 시작해야 합니다.' })).toBeInTheDocument();
+    expect(screen.queryByText('종합 하찮력')).not.toBeInTheDocument();
   });
 });

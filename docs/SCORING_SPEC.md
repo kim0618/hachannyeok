@@ -563,6 +563,20 @@ crossContextResilience:
 
 ## 분석 단계, 유형, 자격
 
+### DAY 1 종합점수
+
+`OVERALL_SCORE_VERSION = 1`이다. DAY 1 종합점수는 다섯 Ability Score를 `time → center → balance → control → focus` 순서로 동일 가중치 0.20씩 산술평균한 뒤 공통 `roundScore`를 적용한다.
+
+```text
+overallScore = roundScore((timeScore + centerScore + balanceScore + controlScore + focusScore) / 5)
+```
+
+UI는 종합점수를 별도로 계산하지 않는다. Ability Score 하나라도 `insufficientEvidence` 또는 `calculationFailure`이면 종합점수를 0으로 대체하지 않고 같은 explicit failure를 전파한다.
+
+### 대표 자격
+
+대표 자격은 engine이 반환한 다섯 ability certification에서 하나를 결정적으로 선택한다. 먼저 tier를 `special → grade1 → grade2 → grade3 → observer` 순으로 비교하고, 같은 tier이면 Ability Score가 높은 항목을 선택한다. tier와 score가 모두 같으면 `time → center → balance → control → focus` 순서를 사용한다. 이 selector는 자격 eligibility나 tier scoring을 변경하지 않는다.
+
 사용자 표시 단계는 `기본 분석 완료`, `심화 분석 n/5`, `최종 분석 준비 완료`, `최종 분석 완료`뿐이다. 퍼센트나 과학적 신뢰도처럼 보이는 `분석 정확도`를 생성하지 않는다.
 
 Profile은 저장하지 않고 raw record를 replay하여 파생한다. 순서는 DAY 1 baseline → `dailyRecords`를 물리적 배열 순서가 아닌 `analysisDay` 오름차순 DAY 2~6으로 deterministic sort → finalRecord가 있으면 DAY 7 마지막이다.
