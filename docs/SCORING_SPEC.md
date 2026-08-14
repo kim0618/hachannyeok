@@ -271,6 +271,10 @@ DAY 2 time validator는 `targetDurationMs === 3000`을 runtime literal invariant
 
 DAY 3에서 condition과 decorationSide는 각각 `plain↔none`, `decoratedLeft↔left`, `decoratedRight↔right`로만 조합한다. DAY 5의 target/observed/speed/change time은 normalized finite 0..1이고, DAY 6의 모든 좌표는 normalized 0..1이며 exposure/response time은 finite non-negative milliseconds다.
 
+DAY 5 movement는 left-to-right, start `0.08`, end `0.92`다. attempt config는 `(condition, target, initialSpeed, finalSpeed, normalizedChangeTime)` 순서로 `predictable/.58/.32/.32/null`, `surprise/.58/.32/.50/.45`, `predictable/.68/.40/.40/null`, `surprise/.68/.40/.24/.50`이며 전체 attempt index로 반복한다. normalized change time은 initial speed를 end까지 유지한다고 가정한 전체 이동시간의 비율이다. change 전 위치는 `start + initialSpeed * elapsedSeconds`, change 후는 `changePosition + finalSpeed * (elapsedSeconds-changeTimeSeconds)`다. exact end 또는 이후는 `insufficientObservation`이며 raw position을 clamp하지 않는다.
+
+DAY 6 config는 spread A `[(.22,.28),(.72,.30),(.50,.72)]`, clustered B `[(.34,.38),(.62,.42),(.48,.66)]`이며 전체 attempt index A/B/A/B/A 순서다. exposure는 정확히 1200ms, blank는 300ms이고 recall 활성화 뒤 세 번째 선택까지를 `responseTimeMs`로 저장한다. 선택 순서는 raw로 보존하되 target mapping에는 사용하지 않는다.
+
 DAY 2~6은 가능하면 각각 10~20초 안에 완료한다. `targetTrialCount`는 assessment가 retry 여부와 무관하게 먼저 실행해야 하는 최소 attempt 수다. target 시도를 모두 끝낸 뒤 minimum valid와 condition minimum을 충족하면 success다. 충족하지 못하면 한 번에 한 attempt씩 retry하며, `MAX_TRIAL_ATTEMPTS_PER_ASSESSMENT = targetTrialCount + 3`에 도달하기 전에 조건을 충족하는 즉시 완료할 수 있다. 단 `attemptCount < targetTrialCount`이면 minimum valid를 이미 충족했어도 조기 완료하지 않는다. 최대 한도에서도 조건을 충족하지 못하면 `assessmentIncomplete`로 종료하고 completion record를 저장하지 않으며, 사용자는 assessment 전체를 새 session으로 다시 시작할 수 있다.
 
 ## DAY 2~6 evidence mapping
@@ -299,21 +303,19 @@ abilityScore = round(assessmentNormalizedQuality * 100)
 
 `accuracyWeight = 0.75`, `consistencyWeight = 0.25`다. Focus는 아래에 고정한 80/20 correctness/reaction composer를 쓰는 명시적 예외다. normalizer와 모든 수치는 `CALIBRATION_VERSION`과 함께 provisional calibration constants로 관리하며 **출시 전 파일럿 데이터로 변경 가능**하다.
 
-DAY 2~6은 신규 tendency가 primary지만 자기 primary ability에만 제한적 보정 근거를 제공한다. DAY 6의 primary ability는 focus다. 다른 ability는 직접 변경하지 않는다.
+DAY 2~6은 DAY 1의 절대 Ability를 다시 측정하지 않는다. reference 대비 challenge에서 얼마나 흔들리는지를 자기 primary ability에 제한적인 modifier로 반영한다. 다른 ability는 직접 변경하지 않는다. DAY 6는 spread A valid mean matching error를 reference, clustered B valid mean matching error를 challenge로 사용해 Focus만 보정한다.
 
 ```text
-BASELINE_WEIGHT = 0.75
-DAILY_MAX_WEIGHT = 0.25
 DAILY_SCORE_DELTA_CAP = 8
 
-candidate = baselineScore * BASELINE_WEIGHT
-          + dailyEquivalentScore * DAILY_MAX_WEIGHT
+conditionEffectNormalized
+  = clamp((referenceMeanError - challengeMeanError) / ABILITY_ERROR_WORST, -1, +1)
 
-displayedScore = baselineScore
-  + clamp(round(candidate) - baselineScore, -8, +8)
+dailyDelta = round(conditionEffectNormalized * DAILY_SCORE_DELTA_CAP)
+displayedScore = clamp(day1BaselineScore + dailyDelta, 0, 100)
 ```
 
-단일 DAILY가 만든 displayed score 변화는 baseline 대비 최대 ±8이다. 작은 변화는 반올림으로 과장하지 않고 `변화 없음`과 신규 tendency를 함께 표시한다. 이 가중치와 cap은 provisional이며 출시 전 파일럿 데이터로 변경 가능하다.
+단일 DAILY 변화는 DAY 1 baseline 대비 최대 ±8이며 현재 점수에 누적하지 않는다. DAILY modifier에는 consistency composer를 만들지 않는다. DAY 1 accuracy 75%/consistency 25% composer와 DAY 7 80/20 final calibration은 유지한다. DAY 2는 plain/distracted, DAY 3은 DAY 3 plain/decorated, DAY 4는 DAY 1 two-way/DAY 4 three-way, DAY 5는 predictable/surprise mean error를 각각 reference/challenge로 사용한다. challenge가 더 정확하면 positive modifier를 허용한다.
 
 ## 검사별 provisional normalizer
 
@@ -355,12 +357,10 @@ reactionQuality = correctCount === 0 ? 0 : 1 - clamp01(medianCorrectReactionTime
 focusQuality = correctnessQuality * 0.80 + reactionQuality * 0.20
 Ability Score = roundScore(focusQuality * 100)
 
-Spatial Memory:
-spatialMemoryQuality = 1 - clamp01(mean(matchingMeanDistance) / SPATIAL_MEMORY_DISTANCE_WORST)
-dailyEquivalentScore = roundScore(spatialMemoryQuality * 100)
+Spatial Memory는 Focus supporting evidence지만 절대 Focus 재측정으로 사용하지 않는다. DAY 6는 `clamp((spreadMeanError - clusteredMeanError) / SPATIAL_MEMORY_DISTANCE_WORST, -1, 1)`에 기존 ±8 DAILY cap을 적용하고 항상 DAY 1 Focus baseline을 기준으로 한다.
 ```
 
-Time consistency는 signed error의 population standard deviation을 사용한다. Center의 Euclidean 식은 `sqrt((observed.x-target.x)^2 + (observed.y-target.y)^2)`다. DAY 1 two-way Balance와 DAY 4 three-way equivalent 모두 같은 75/25 composer를 사용한다. Focus reaction quality에는 correct valid trial의 RT만 넣고 correct trial이 0개면 0이다. Focus는 generic 75/25 accuracy/consistency composer를 적용하지 않는 명시적 예외다. Spatial Memory는 deterministic matching 뒤 trial별 `matchingMeanDistance`를 계산하며 별도 Ability Score가 아니라 DAY 6 focus supporting `dailyEquivalentScore`만 만든다.
+Time consistency는 signed error의 population standard deviation을 사용한다. Center의 Euclidean 식은 `sqrt((observed.x-target.x)^2 + (observed.y-target.y)^2)`다. 75/25 composer는 DAY 1 absolute baseline에 유지되며 DAY 2~5 modifier에는 적용하지 않는다. Focus reaction quality에는 correct valid trial의 RT만 넣고 correct trial이 0개면 0이다.
 
 ## DAY 7 선택과 최종 결과
 
@@ -497,9 +497,10 @@ surpriseSensitivity (DAY 5):
   contentKey = "control.surprise.{direction}"
 
 spatialMemorySupport (DAY 6):
-  magnitude = clamp01(abs(spatialMemoryQuality - 0.5) * 2)
-  eligible = magnitude >= TENDENCY_DISPLAY_THRESHOLD
-  direction = spatialMemoryQuality >= 0.5 ? supportive : fragile
+  delta = clusteredMeanMatchingError - spreadMeanMatchingError
+  magnitude = clamp01(abs(delta) / SPATIAL_MEMORY_DISTANCE_WORST)
+  eligible = magnitude >= TENDENCY_DISPLAY_THRESHOLD AND delta != 0
+  direction = delta > 0 ? fragile : delta < 0 ? supportive : neutral
   contentKey = "focus.spatialMemory.{direction}"
 ```
 
@@ -638,11 +639,9 @@ DAILY 이후 tier가 실제로 변한 경우에만 변경을 표시한다. thres
 
 | 이름 | 초기값 |
 | --- | ---: |
-| `CALIBRATION_VERSION` | 1 |
+| `CALIBRATION_VERSION` | 2 |
 | `accuracyWeight` | 0.75 |
 | `consistencyWeight` | 0.25 |
-| `BASELINE_WEIGHT` | 0.75 |
-| `DAILY_MAX_WEIGHT` | 0.25 |
 | `DAILY_SCORE_DELTA_CAP` | 8 |
 | `PREFINAL_WEIGHT` | 0.80 |
 | `FINAL_CALIBRATION_WEIGHT` | 0.20 |
@@ -665,4 +664,12 @@ DAILY 이후 tier가 실제로 변한 경우에만 변경을 표시한다. thres
 | `TENDENCY_DISPLAY_THRESHOLD` | 0.15 |
 | `CONDITION_SENSITIVITY_DISPLAY_THRESHOLD` | 0.10 |
 
-위 숫자는 과학적·의학적 진단 기준이 아니라 **파일럿 테스트 전 임시 MVP UX calibration 값**이다. 초기 `CALIBRATION_VERSION = 1`이며 calibration 숫자가 변경되면 version을 증가시킨다. 구조나 invariant 변경은 단순 calibration version 변경이 아니라 schema/product contract 변경으로 별도 관리한다. 구조와 invariant는 확정이고 숫자, weight/cap/margin/tier 및 predicate threshold만 출시 전 파일럿 데이터로 보정할 수 있다.
+위 숫자는 과학적·의학적 진단 기준이 아니라 **파일럿 테스트 전 임시 MVP UX calibration 값**이다. DAILY condition-centered modifier를 적용한 현재 `CALIBRATION_VERSION = 2`이며 calibration 숫자가 변경되면 version을 증가시킨다. Storage schemaVersion은 그대로이며 기존 raw evidence를 V2로 재생한다.
+
+## DAY 3 stimulus identity와 direction 보강 계약
+
+- `CenterConditionTrial.stimulusId`: `day3-plain-01 | day3-left-01 | day3-right-01`
+- `plain↔none↔day3-plain-01`, `decoratedLeft↔left↔day3-left-01`, `decoratedRight↔right↔day3-right-01`만 허용한다.
+- target은 valid/invalid arm 모두 정확히 `{x: 0.5, y: 0.5}`다.
+- 평균 shift가 `(0,0)`이거나 `abs(dx) === abs(dy)`면 `neutral`이다. 그 외 x dominant는 left/right, y dominant는 up/down이다.
+- epsilon 없이 exact comparison을 사용하며 기존 magnitude eligibility와 direction을 분리해 eligible+neutral을 허용한다.

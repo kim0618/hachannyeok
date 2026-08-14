@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AppShell } from './components/AppShell';
 import { AssessmentIntroScreen } from './screens/AssessmentIntroScreen';
-import { AssessmentReadyScreen } from './screens/AssessmentReadyScreen';
 import { HomeScreen } from './screens/HomeScreen';
 import { TimeAssessmentScreen } from './features/assessment/time/TimeAssessmentScreen';
 import { CenterAssessmentScreen } from './features/assessment/center/CenterAssessmentScreen';
@@ -12,7 +11,22 @@ import { BasicAnalysisScreen } from './features/analysis/BasicAnalysisScreen';
 import { Day2AnalysisScreen } from './features/analysis/Day2AnalysisScreen';
 import { Day2IntroScreen } from './features/assessment/day2Time/Day2IntroScreen';
 import { Day2TimeAssessmentScreen } from './features/assessment/day2Time/Day2TimeAssessmentScreen';
-import type { Day1RawResult, DailyRawResult } from './domain/assessment/results';
+import { Day3IntroScreen } from './features/assessment/day3Center/Day3IntroScreen';
+import { Day3CenterAssessmentScreen } from './features/assessment/day3Center/Day3CenterAssessmentScreen';
+import { Day3AnalysisScreen } from './features/analysis/Day3AnalysisScreen';
+import { Day4IntroScreen } from './features/assessment/day4Balance/Day4IntroScreen';
+import { Day4BalanceAssessmentScreen } from './features/assessment/day4Balance/Day4BalanceAssessmentScreen';
+import { Day4AnalysisScreen } from './features/analysis/Day4AnalysisScreen';
+import { Day5IntroScreen } from './features/assessment/day5Control/Day5IntroScreen';
+import { Day5ControlAssessmentScreen } from './features/assessment/day5Control/Day5ControlAssessmentScreen';
+import { Day5AnalysisScreen } from './features/analysis/Day5AnalysisScreen';
+import { Day6IntroScreen } from './features/assessment/day6SpatialMemory/Day6IntroScreen';
+import { Day6SpatialMemoryAssessmentScreen } from './features/assessment/day6SpatialMemory/Day6SpatialMemoryAssessmentScreen';
+import type { Day6TimerScheduler } from './features/assessment/day6SpatialMemory/useDay6SpatialMemoryAssessment';
+import { Day6AnalysisScreen } from './features/analysis/Day6AnalysisScreen';
+import { FinalCalibrationScreen } from './features/assessment/final/FinalCalibrationScreen';
+import { FinalAnalysisScreen } from './features/analysis/FinalAnalysisScreen';
+import type { Day1RawResult, DailyRawResult, FinalRawResult } from './domain/assessment/results';
 import { validateCompletion } from './domain/assessment/completion';
 import { deriveUserState } from './domain/progression/deriveUserState';
 import { toLocalDateKey } from './domain/progression/localDate';
@@ -22,19 +36,25 @@ import { shouldDiscardBaselineCheckpoint } from './domain/session/types';
 import type { StoragePort } from './domain/storage/StoragePort';
 import { prepareBaselineSave } from './domain/storage/persistBaseline';
 import { validatePersistedAppData } from './domain/storage/schema';
-import type { BaselineRecord, PersistedAppData } from './domain/storage/types';
+import type { BaselineRecord, FinalRecord, PersistedAppData } from './domain/storage/types';
 import type { DailyRecord } from './domain/storage/types';
 import { prepareDailySave } from './domain/storage/persistDaily';
+import { prepareFinalSave } from './domain/storage/persistFinal';
 import { deriveAnalysis } from './domain/scoring/deriveAnalysis';
+import { day7Confidence, selectDay7Target } from './domain/scoring/finalSelector';
+import { calculateStability } from './domain/scoring/stability';
+import type { Ability } from './domain/scoring/types';
 import type { DerivedAnalysis, DeriveAnalysisResult } from './domain/scoring/types';
 import { appsInTossStorage } from './infrastructure/storage/AppsInTossStorageAdapter';
 import { StorageMutationCoordinator } from './infrastructure/storage/StorageMutationCoordinator';
+import type { SharePort } from './infrastructure/share/SharePort';
+import { appsInTossShare } from './infrastructure/share/appsInTossShare';
 import './styles.css';
 
-export type AppScreen = 'home' | 'intro' | 'assessment-ready' | 'time-assessment' | 'center-assessment' | 'balance-assessment' | 'control-assessment' | 'focus-assessment' | 'basic-analysis' | 'baseline-date-invalidated' | 'day2-intro' | 'day2-assessment' | 'day2-result' | 'day3-placeholder';
+export type AppScreen = 'home' | 'intro' | 'time-assessment' | 'center-assessment' | 'balance-assessment' | 'control-assessment' | 'focus-assessment' | 'basic-analysis' | 'baseline-date-invalidated' | 'day2-intro' | 'day2-assessment' | 'day2-result' | 'day3-intro' | 'day3-assessment' | 'day3-result' | 'day4-intro' | 'day4-assessment' | 'day4-result' | 'day5-intro' | 'day5-assessment' | 'day5-result' | 'day6-intro' | 'day6-assessment' | 'day6-result' | 'day7-intro' | 'day7-assessment' | 'final-report';
 interface BaselineSessionIdentity { sessionId: string; startedAt: string; startedLocalDateKey: LocalDateKey }
 interface DailySessionIdentity { sessionId: string; startedAt: string; localDateKey: LocalDateKey }
-interface AppProps { initialScreen?: AppScreen; dateNow?: () => Date; createSessionId?: () => string; initialBaselineDraft?: BaselineDraft; initialSession?: BaselineSessionIdentity; initialPersistedData?: PersistedAppData; storagePort?: StoragePort; bypassInitialLoad?: boolean }
+interface AppProps { initialScreen?: AppScreen; dateNow?: () => Date; createSessionId?: () => string; initialBaselineDraft?: BaselineDraft; initialSession?: BaselineSessionIdentity; initialPersistedData?: PersistedAppData; storagePort?: StoragePort; sharePort?: SharePort; bypassInitialLoad?: boolean; day5Clock?: { now: () => number }; day5AnimationScheduler?: { request: (callback: FrameRequestCallback) => number; cancel: (id: number) => void }; day6Clock?: {now:()=>number}; day6TimerScheduler?:Day6TimerScheduler }
 type LoadState = 'loading' | 'loaded' | 'loadError' | 'corruptData' | 'checkpointDiscardFailed';
 type SaveStatus = 'saving' | 'saved' | 'failed';
 interface PendingCheckpoint { data: PersistedAppData; next: AppScreen }
@@ -42,7 +62,7 @@ const emptyData = (now: string): PersistedAppData => ({ schemaVersion: 1, dailyR
 const defaultDateNow = () => new Date();
 const defaultCreateSessionId = () => crypto.randomUUID();
 
-export function App({ initialScreen = 'home', dateNow = defaultDateNow, createSessionId = defaultCreateSessionId, initialBaselineDraft = {}, initialSession, initialPersistedData, storagePort = appsInTossStorage, bypassInitialLoad = import.meta.env.MODE === 'test' }: AppProps = {}) {
+export function App({ initialScreen = 'home', dateNow = defaultDateNow, createSessionId = defaultCreateSessionId, initialBaselineDraft = {}, initialSession, initialPersistedData, storagePort = appsInTossStorage, sharePort = appsInTossShare, bypassInitialLoad = import.meta.env.MODE === 'test', day5Clock, day5AnimationScheduler,day6Clock,day6TimerScheduler }: AppProps = {}) {
   const [loadState, setLoadState] = useState<LoadState>(bypassInitialLoad ? 'loaded' : 'loading');
   const [screen, setScreen] = useState<AppScreen>(initialScreen);
   const [persisted, setPersisted] = useState<PersistedAppData>(() => initialPersistedData ?? emptyData(dateNow().toISOString()));
@@ -57,6 +77,8 @@ export function App({ initialScreen = 'home', dateNow = defaultDateNow, createSe
   const [conflictingBaseline, setConflictingBaseline] = useState<BaselineRecord>();
   const [recordConflictActive, setRecordConflictActive] = useState(false);
   const [dailySession, setDailySession] = useState<DailySessionIdentity | null>(null);
+  const [finalSession, setFinalSession] = useState<DailySessionIdentity | null>(null);
+  const [selectedFinalAbility, setSelectedFinalAbility] = useState<Ability | null>(() => initialPersistedData?.finalRecord?.selectedAbility ?? null);
   const [dailyResult, setDailyResult] = useState<{ record: DailyRecord; before: DerivedAnalysis; after: DerivedAnalysis }>();
   const coordinator = useMemo(() => new StorageMutationCoordinator(), []);
   const mountedRef = useRef(true);
@@ -87,6 +109,8 @@ export function App({ initialScreen = 'home', dateNow = defaultDateNow, createSe
     setBaseline(data.baseline);
     setAnalysis(data.baseline ? deriveAnalysis(data) : undefined);
     setSession(null);
+    setFinalSession(null);
+    setSelectedFinalAbility(data.finalRecord?.selectedAbility ?? null);
     setBaselineDraft({});
     setScreen('home');
     if (data.activeBaselineSession && !data.baseline) {
@@ -201,6 +225,16 @@ export function App({ initialScreen = 'home', dateNow = defaultDateNow, createSe
   };
 
   const restartDay2 = () => { setDailySession(null); setScreen('day2-intro'); };
+  const beginDay3 = () => { const started = dateNow(); setDailySession({ sessionId: createSessionId(), startedAt: started.toISOString(), localDateKey: toLocalDateKey(started) }); setScreen('day3-assessment'); };
+  const restartDay3 = () => { setDailySession(null); setScreen('day3-intro'); };
+  const beginDay4 = () => { const started = dateNow(); setDailySession({ sessionId: createSessionId(), startedAt: started.toISOString(), localDateKey: toLocalDateKey(started) }); setScreen('day4-assessment'); };
+  const restartDay4 = () => { setDailySession(null); setScreen('day4-intro'); };
+  const beginDay5 = () => { const started=dateNow(); setDailySession({sessionId:createSessionId(),startedAt:started.toISOString(),localDateKey:toLocalDateKey(started)}); setScreen('day5-assessment'); };
+  const restartDay5 = () => { setDailySession(null); setScreen('day5-intro'); };
+  const beginDay6=()=>{const started=dateNow();setDailySession({sessionId:createSessionId(),startedAt:started.toISOString(),localDateKey:toLocalDateKey(started)});setScreen('day6-assessment');};
+  const restartDay6=()=>{setDailySession(null);setScreen('day6-intro');};
+  const beginDay7=()=>{if(!baseline||persisted.dailyRecords.length!==5)return;const started=dateNow();const dailyRaw=persisted.dailyRecords.map(record=>record.rawResult);const selected=selectDay7Target(day7Confidence(baseline.assessmentRawResults,dailyRaw,calculateStability(baseline.assessmentRawResults,dailyRaw)));setSelectedFinalAbility(selected);setFinalSession({sessionId:createSessionId(),startedAt:started.toISOString(),localDateKey:toLocalDateKey(started)});setScreen('day7-assessment');};
+  const restartDay7=()=>{setFinalSession(null);setSelectedFinalAbility(null);setScreen('day7-intro');};
 
   const finishDay2 = (rawResult: Extract<DailyRawResult, { assessmentType: 'day2_time_distraction' }>) => {
     const completed = dateNow();
@@ -215,6 +249,25 @@ export function App({ initialScreen = 'home', dateNow = defaultDateNow, createSe
     setAnalysis(nextAnalysis); setPendingSave(prepared.data); setSaveStatus('saving'); setScreen('day2-result');
     void writePending(prepared.data);
   };
+  const finishDay3 = (rawResult: Extract<DailyRawResult, { assessmentType: 'day3_decorated_center' }>) => {
+    const completed = dateNow(); const localDateKey = toLocalDateKey(completed);
+    if (!dailySession || dailySession.localDateKey !== localDateKey || validateCompletion(rawResult).status !== 'completed' || !analysis?.ok || persisted.dailyRecords.length !== 1 || persisted.dailyRecords[0]?.analysisDay !== 2) { restartDay3(); return; }
+    const record: DailyRecord = { recordId: `${dailySession.sessionId}:day3`, sessionId: dailySession.sessionId, analysisDay: 3, assessmentType: 'day3_decorated_center', startedAt: dailySession.startedAt, completedAt: completed.toISOString(), localDateKey, rawResult };
+    const prepared = prepareDailySave(persisted, record, completed.toISOString()); if (!prepared.ok) { restartDay3(); return; }
+    const nextAnalysis = deriveAnalysis(prepared.data); if (!nextAnalysis.ok) { restartDay3(); return; }
+    setDailyResult({ record, before: analysis.value, after: nextAnalysis.value }); setAnalysis(nextAnalysis); setPendingSave(prepared.data); setSaveStatus('saving'); setScreen('day3-result'); void writePending(prepared.data);
+  };
+  const finishDay4 = (rawResult: Extract<DailyRawResult, { assessmentType: 'day4_balance_three_way' }>) => {
+    const completed = dateNow(); const localDateKey = toLocalDateKey(completed);
+    if (!dailySession || dailySession.localDateKey !== localDateKey || validateCompletion(rawResult).status !== 'completed' || !analysis?.ok || persisted.dailyRecords.length !== 2 || persisted.dailyRecords[0]?.analysisDay !== 2 || persisted.dailyRecords[1]?.analysisDay !== 3) { restartDay4(); return; }
+    const record: DailyRecord = { recordId: `${dailySession.sessionId}:day4`, sessionId: dailySession.sessionId, analysisDay: 4, assessmentType: 'day4_balance_three_way', startedAt: dailySession.startedAt, completedAt: completed.toISOString(), localDateKey, rawResult };
+    const prepared = prepareDailySave(persisted, record, completed.toISOString()); if (!prepared.ok) { restartDay4(); return; }
+    const nextAnalysis = deriveAnalysis(prepared.data); if (!nextAnalysis.ok) { restartDay4(); return; }
+    setDailyResult({ record, before: analysis.value, after: nextAnalysis.value }); setAnalysis(nextAnalysis); setPendingSave(prepared.data); setSaveStatus('saving'); setScreen('day4-result'); void writePending(prepared.data);
+  };
+  const finishDay5 = (rawResult: Extract<DailyRawResult,{assessmentType:'day5_control_surprise'}>) => { const completed=dateNow(),localDateKey=toLocalDateKey(completed); if(!dailySession||dailySession.localDateKey!==localDateKey||validateCompletion(rawResult).status!=='completed'||!analysis?.ok||persisted.dailyRecords.length!==3||persisted.dailyRecords.some((r,index)=>r.analysisDay!==index+2)){restartDay5();return;}const record:DailyRecord={recordId:`${dailySession.sessionId}:day5`,sessionId:dailySession.sessionId,analysisDay:5,assessmentType:'day5_control_surprise',startedAt:dailySession.startedAt,completedAt:completed.toISOString(),localDateKey,rawResult};const prepared=prepareDailySave(persisted,record,completed.toISOString());if(!prepared.ok){restartDay5();return;}const next=deriveAnalysis(prepared.data);if(!next.ok){restartDay5();return;}setDailyResult({record,before:analysis.value,after:next.value});setAnalysis(next);setPendingSave(prepared.data);setSaveStatus('saving');setScreen('day5-result');void writePending(prepared.data); };
+  const finishDay6=(rawResult:Extract<DailyRawResult,{assessmentType:'day6_spatial_memory'}>)=>{const completed=dateNow(),localDateKey=toLocalDateKey(completed);if(!dailySession||dailySession.localDateKey!==localDateKey||validateCompletion(rawResult).status!=='completed'||!analysis?.ok||persisted.dailyRecords.length!==4||persisted.dailyRecords.some((record,index)=>record.analysisDay!==index+2)){restartDay6();return;}const record:DailyRecord={recordId:`${dailySession.sessionId}:day6`,sessionId:dailySession.sessionId,analysisDay:6,assessmentType:'day6_spatial_memory',startedAt:dailySession.startedAt,completedAt:completed.toISOString(),localDateKey,rawResult};const prepared=prepareDailySave(persisted,record,completed.toISOString());if(!prepared.ok){restartDay6();return;}const next=deriveAnalysis(prepared.data);if(!next.ok){restartDay6();return;}setDailyResult({record,before:analysis.value,after:next.value});setAnalysis(next);setPendingSave(prepared.data);setSaveStatus('saving');setScreen('day6-result');void writePending(prepared.data);};
+  const finishDay7=(rawResult:FinalRawResult)=>{const completed=dateNow(),localDateKey=toLocalDateKey(completed);if(!finalSession||!selectedFinalAbility||finalSession.localDateKey!==localDateKey||rawResult.selectedAbility!==selectedFinalAbility||validateCompletion(rawResult).status!=='completed'||persisted.dailyRecords.length!==5){restartDay7();return;}const record:FinalRecord={recordId:`${finalSession.sessionId}:final`,sessionId:finalSession.sessionId,selectedAbility:selectedFinalAbility,assessmentType:rawResult.assessmentType,startedAt:finalSession.startedAt,completedAt:completed.toISOString(),localDateKey,rawResult};const prepared=prepareFinalSave(persisted,record,completed.toISOString());if(!prepared.ok){if(prepared.error==='finalAlreadyCompleted'&&persisted.finalRecord){setAnalysis(deriveAnalysis(persisted));setScreen('final-report');}else restartDay7();return;}const next=deriveAnalysis(prepared.data);if(!next.ok){restartDay7();return;}setAnalysis(next);setPendingSave(prepared.data);setSaveStatus('saving');setScreen('final-report');void writePending(prepared.data);};
 
   const clearAll = async () => {
     saveInFlightRef.current = false;
@@ -224,7 +277,7 @@ export function App({ initialScreen = 'home', dateNow = defaultDateNow, createSe
     if (!mountedRef.current || revision !== mutationRevisionRef.current) return false;
     if (!result.ok) return false;
     const next = emptyData(dateNow().toISOString());
-    setPersisted(next); setBaseline(undefined); setAnalysis(undefined); setBaselineDraft({}); setSession(null); setDailySession(null); setDailyResult(undefined); setPendingSave(undefined); setPendingCheckpoint(undefined); setCheckpointStatus(undefined); setConflictingBaseline(undefined); setRecordConflictActive(false); setSaveStatus('saved'); setScreen('home'); setLoadState('loaded');
+    setPersisted(next); setBaseline(undefined); setAnalysis(undefined); setBaselineDraft({}); setSession(null); setDailySession(null); setFinalSession(null); setSelectedFinalAbility(null); setDailyResult(undefined); setPendingSave(undefined); setPendingCheckpoint(undefined); setCheckpointStatus(undefined); setConflictingBaseline(undefined); setRecordConflictActive(false); setSaveStatus('saved'); setScreen('home'); setLoadState('loaded');
     return true;
   };
 
@@ -238,20 +291,42 @@ export function App({ initialScreen = 'home', dateNow = defaultDateNow, createSe
 
   return <AppShell>
     {screen === 'home' && userState === 'A' && <HomeScreen onStart={() => setScreen('intro')} />}
-    {screen === 'home' && userState !== 'A' && <ReturningHome state={userState} dailyCount={persisted.dailyRecords.length} onDaily={() => setScreen(persisted.dailyRecords.length === 0 ? 'day2-intro' : 'day3-placeholder')} onAnalysis={() => setScreen('basic-analysis')} onClear={clearAll} />}
-    {screen === 'intro' && <AssessmentIntroScreen onBack={() => setScreen('home')} onStart={() => setScreen('assessment-ready')} />}
-    {screen === 'assessment-ready' && <AssessmentReadyScreen onStart={beginBaseline} />}
+    {screen === 'home' && userState !== 'A' && <ReturningHome state={userState} dailyCount={persisted.dailyRecords.length} onDaily={() => setScreen(persisted.dailyRecords.length === 0 ? 'day2-intro' : persisted.dailyRecords.length === 1 ? 'day3-intro' : persisted.dailyRecords.length === 2 ? 'day4-intro' : persisted.dailyRecords.length === 3 ? 'day5-intro' : persisted.dailyRecords.length===4?'day6-intro':'day7-intro')} onAnalysis={() => setScreen(userState==='F'?'final-report':'basic-analysis')} onClear={clearAll} />}
+    {screen === 'intro' && <AssessmentIntroScreen onBack={() => setScreen('home')} onStart={beginBaseline} />}
     {screen === 'time-assessment' && <TimeAssessmentScreen dateNow={dateNow} baselineSessionDateKey={session?.startedLocalDateKey} onDateInvalidated={invalidateBaselineForDateChange} onComplete={(result) => preserveAndMove(result, 'center-assessment')} />}
-    {screen === 'center-assessment' && <CenterAssessmentScreen dateNow={dateNow} baselineSessionDateKey={session?.startedLocalDateKey} onDateInvalidated={invalidateBaselineForDateChange} onComplete={(result) => preserveAndMove(result, 'balance-assessment')} />}
-    {screen === 'balance-assessment' && <BalanceAssessmentScreen dateNow={dateNow} baselineSessionDateKey={session?.startedLocalDateKey} onDateInvalidated={invalidateBaselineForDateChange} onComplete={(result) => preserveAndMove(result, 'control-assessment')} />}
-    {screen === 'control-assessment' && <ControlAssessmentScreen dateNow={dateNow} baselineSessionDateKey={session?.startedLocalDateKey} onDateInvalidated={invalidateBaselineForDateChange} onComplete={(result) => preserveAndMove(result, 'focus-assessment')} />}
-    {screen === 'focus-assessment' && <FocusAssessmentScreen dateNow={dateNow} baselineSessionDateKey={session?.startedLocalDateKey} onDateInvalidated={invalidateBaselineForDateChange} onComplete={finishBaseline} />}
-    {screen === 'basic-analysis' && <BasicAnalysisScreen baseline={baseline} analysis={analysis} dailyCount={persisted.dailyRecords.length} saveStatus={saveStatus} onRetrySave={pendingSave ? () => { void writePending(pendingSave); } : undefined} onRestart={restart} onHome={pendingSave ? undefined : () => setScreen('home')} />}
+    {screen === 'center-assessment' && <CenterAssessmentScreen variationSessionId={session?.sessionId} dateNow={dateNow} baselineSessionDateKey={session?.startedLocalDateKey} onDateInvalidated={invalidateBaselineForDateChange} onComplete={(result) => preserveAndMove(result, 'balance-assessment')} />}
+    {screen === 'balance-assessment' && <BalanceAssessmentScreen variationSessionId={session?.sessionId} dateNow={dateNow} baselineSessionDateKey={session?.startedLocalDateKey} onDateInvalidated={invalidateBaselineForDateChange} onComplete={(result) => preserveAndMove(result, 'control-assessment')} />}
+    {screen === 'control-assessment' && <ControlAssessmentScreen variationSessionId={session?.sessionId} dateNow={dateNow} baselineSessionDateKey={session?.startedLocalDateKey} onDateInvalidated={invalidateBaselineForDateChange} onComplete={(result) => preserveAndMove(result, 'focus-assessment')} />}
+    {screen === 'focus-assessment' && <FocusAssessmentScreen variationSessionId={session?.sessionId} dateNow={dateNow} baselineSessionDateKey={session?.startedLocalDateKey} onDateInvalidated={invalidateBaselineForDateChange} onComplete={finishBaseline} />}
+    {screen === 'basic-analysis' && <BasicAnalysisScreen baseline={baseline} analysis={analysis} dailyCount={persisted.dailyRecords.length} saveStatus={saveStatus} onRetrySave={pendingSave ? () => { void writePending(pendingSave); } : undefined} onRestart={restart} onHome={pendingSave ? undefined : () => setScreen('home')} sharePort={sharePort} />}
     {screen === 'baseline-date-invalidated' && <BaselineDateInvalidatedScreen onRestart={restart} />}
     {screen === 'day2-intro' && <Day2IntroScreen onStart={beginDay2} />}
     {screen === 'day2-assessment' && dailySession && <Day2TimeAssessmentScreen sessionDateKey={dailySession.localDateKey} dateNow={dateNow} onDateInvalidated={restartDay2} onComplete={finishDay2} />}
     {screen === 'day2-result' && dailyResult && <Day2AnalysisScreen {...dailyResult} saveStatus={saveStatus} onRetrySave={pendingSave ? () => { void writePending(pendingSave); } : undefined} onHome={pendingSave ? undefined : () => setScreen('home')} onAnalysis={pendingSave ? undefined : () => setScreen('basic-analysis')} />}
-    {screen === 'day3-placeholder' && <NextDailyPlaceholder onHome={() => setScreen('home')} />}
+    {screen === 'day3-intro' && <Day3IntroScreen onStart={beginDay3} />}
+    {screen === 'day3-assessment' && dailySession && <Day3CenterAssessmentScreen variationSessionId={dailySession.sessionId} sessionDateKey={dailySession.localDateKey} dateNow={dateNow} onDateInvalidated={restartDay3} onComplete={finishDay3} />}
+    {screen === 'day3-result' && dailyResult && baseline && <Day3AnalysisScreen baseline={baseline} {...dailyResult} saveStatus={saveStatus} onRetrySave={pendingSave ? () => { void writePending(pendingSave); } : undefined} onHome={pendingSave ? undefined : () => setScreen('home')} onAnalysis={pendingSave ? undefined : () => setScreen('basic-analysis')} />}
+    {screen === 'day4-intro' && <Day4IntroScreen onStart={beginDay4} />}
+    {screen === 'day4-assessment' && dailySession && <Day4BalanceAssessmentScreen variationSessionId={dailySession.sessionId} sessionDateKey={dailySession.localDateKey} dateNow={dateNow} onDateInvalidated={restartDay4} onComplete={finishDay4} />}
+    {screen === 'day4-result' && dailyResult && baseline && <Day4AnalysisScreen baseline={baseline} {...dailyResult} saveStatus={saveStatus} onRetrySave={pendingSave ? () => { void writePending(pendingSave); } : undefined} onHome={pendingSave ? undefined : () => setScreen('home')} onAnalysis={pendingSave ? undefined : () => setScreen('basic-analysis')} />}
+    {screen === 'day5-intro' && <Day5IntroScreen onStart={beginDay5} />}
+    {screen === 'day5-assessment' && dailySession && <Day5ControlAssessmentScreen variationSessionId={dailySession.sessionId} sessionDateKey={dailySession.localDateKey} dateNow={dateNow} clock={day5Clock} animationScheduler={day5AnimationScheduler} onDateInvalidated={restartDay5} onComplete={finishDay5} />}
+    {screen === 'day5-result' && dailyResult && <Day5AnalysisScreen {...dailyResult} saveStatus={saveStatus} onRetrySave={pendingSave?()=>{void writePending(pendingSave);}:undefined} onHome={pendingSave?undefined:()=>setScreen('home')} onAnalysis={pendingSave?undefined:()=>setScreen('basic-analysis')} />}
+    {screen==='day6-intro'&&<Day6IntroScreen onStart={beginDay6}/>}
+    {screen==='day6-assessment'&&dailySession&&<Day6SpatialMemoryAssessmentScreen variationSessionId={dailySession.sessionId} sessionDateKey={dailySession.localDateKey} dateNow={dateNow} clock={day6Clock} scheduler={day6TimerScheduler} onDateInvalidated={restartDay6} onComplete={finishDay6}/>}
+    {screen==='day6-result'&&dailyResult&&<Day6AnalysisScreen {...dailyResult} saveStatus={saveStatus} onRetrySave={pendingSave?()=>{void writePending(pendingSave);}:undefined} onHome={pendingSave?undefined:()=>setScreen('home')} onAnalysis={pendingSave?undefined:()=>setScreen('basic-analysis')}/>}
+    {screen === 'day7-intro' && <Day7IntroScreen selectedAbility={selectedFinalAbility} onStart={beginDay7} />}
+    {screen === 'day7-assessment' && finalSession && selectedFinalAbility && <FinalCalibrationScreen
+      ability={selectedFinalAbility} variationSessionId={finalSession.sessionId} sessionDateKey={finalSession.localDateKey} dateNow={dateNow}
+      onComplete={finishDay7} onRestart={restartDay7}
+    />}
+    {screen === 'final-report' && <FinalAnalysisScreen
+      baseline={baseline} dailyRecords={(pendingSave ?? persisted).dailyRecords}
+      finalRecord={(pendingSave ?? persisted).finalRecord} analysis={analysis} saveStatus={saveStatus}
+      onRetrySave={pendingSave ? () => { void writePending(pendingSave); } : undefined}
+      onHome={pendingSave ? undefined : () => setScreen('home')}
+      sharePort={sharePort}
+    />}
   </AppShell>;
 }
 
@@ -264,12 +339,12 @@ function CorruptDataScreen({ onClear }: { onClear: () => Promise<boolean> }) {
   return <div className="screen analysis-error"><section role="alert"><h1>저장된 분석 기록을 불러오지 못했습니다.</h1><p>손상된 기록은 자동으로 삭제하지 않습니다.</p>{failed && <p>기록을 초기화하지 못했습니다.</p>}</section><div className="bottom-action">{confirm ? <><p>기록을 모두 지울까요? 삭제 후 복구할 수 없습니다.</p><button className="primary-button" onClick={() => void onClear().then((ok) => setFailed(!ok))}>기록 초기화</button><button className="secondary-button" onClick={() => setConfirm(false)}>취소</button></> : <button className="primary-button" onClick={() => setConfirm(true)}>기록 초기화</button>}</div></div>;
 }
 function ReturningHome({ state, dailyCount, onDaily, onAnalysis, onClear }: { state: UserState; dailyCount: number; onDaily: () => void; onAnalysis: () => void; onClear: () => Promise<boolean> }) {
-  const [confirm, setConfirm] = useState(false); const [clearFailed, setClearFailed] = useState(false); const dailyReady = state === 'C'; const dailyDone = state === 'D' && dailyCount > 0;
-  return <div className="screen home-screen"><main><p className="eyebrow">하찮력</p><h1>{dailyReady ? '오늘의 추가 분석이 준비됐습니다.' : dailyDone ? '오늘의 추가 분석 완료' : '기본 분석이 완료됐습니다.'}</h1><p>{dailyReady ? '오늘은 한 가지 조건을 더 확인할 수 있어요.' : dailyDone ? '다음 추가 분석은 다른 날 이어서 할 수 있어요.' : '오늘 완료한 기본 분석서를 다시 볼 수 있어요.'}</p><button className="primary-button" type="button" onClick={dailyReady ? onDaily : onAnalysis}>{dailyReady ? '오늘의 추가 분석' : dailyDone ? '업데이트된 분석서 보기' : '기본 분석서 보기'}</button>{dailyReady && <button className="secondary-button" type="button" onClick={onAnalysis}>내 분석서 보기</button>}<p className="storage-copy">분석 결과는 현재 기기에 저장됩니다.</p>{clearFailed && <p role="alert">기록을 초기화하지 못했습니다.</p>}{confirm ? <div><p>기록을 모두 지울까요? 앱 데이터가 삭제되면 복구할 수 없습니다.</p><button className="secondary-button" onClick={() => void onClear().then((ok) => setClearFailed(!ok))}>기록 모두 지우기</button><button className="secondary-button" onClick={() => setConfirm(false)}>취소</button></div> : <button className="secondary-button" onClick={() => setConfirm(true)}>전체 데이터 초기화</button>}</main></div>;
+  const [confirm, setConfirm] = useState(false); const [clearFailed, setClearFailed] = useState(false); const dailyReady = state === 'C'; const finalReady=state==='E';const finalDone=state==='F';const dailyDone = state === 'D' && dailyCount > 0;
+  return <div className="screen home-screen"><main><p className="eyebrow">쓸능검</p><h1>{finalDone?'최종 분석 완료':finalReady?'최종 분석 준비 완료':dailyReady ? '오늘의 추가 분석이 준비됐습니다.' : dailyDone ? '오늘의 추가 분석 완료' : '기본 분석이 완료됐습니다.'}</h1><p>{finalDone?'최종 쓸능검 사용설명서를 다시 볼 수 있어요.':finalReady?'DAY 1~6 누적 evidence를 바탕으로 가장 확인이 필요한 능력을 약 15~20초 동안 마지막으로 점검해요.':dailyReady ? '오늘은 한 가지 조건을 더 확인할 수 있어요.' : dailyDone ? '다음 추가 분석은 다른 날 이어서 할 수 있어요.' : '오늘 완료한 기본 분석서를 다시 볼 수 있어요.'}</p><button className="primary-button" type="button" onClick={dailyReady||finalReady ? onDaily : onAnalysis}>{finalDone?'최종 사용설명서 보기':finalReady?'최종 분석 시작':dailyReady ? '오늘의 추가 분석' : dailyDone ? '업데이트된 분석서 보기' : '기본 분석서 보기'}</button>{(dailyReady||finalReady) && <button className="secondary-button" type="button" onClick={onAnalysis}>내 분석서 보기</button>}<p className="storage-copy">분석 결과는 현재 기기에 저장됩니다.</p>{clearFailed && <p role="alert">기록을 초기화하지 못했습니다.</p>}{confirm ? <div><p>기록을 모두 지울까요? 앱 데이터가 삭제되면 복구할 수 없습니다.</p><button className="secondary-button" onClick={() => void onClear().then((ok) => setClearFailed(!ok))}>기록 모두 지우기</button><button className="secondary-button" onClick={() => setConfirm(false)}>취소</button></div> : <button className="secondary-button" onClick={() => setConfirm(true)}>전체 데이터 초기화</button>}</main></div>;
 }
 function RecordConflictScreen({ onViewExisting, onClear }: { onViewExisting: () => void; onClear: () => Promise<boolean> }) {
   const [confirm, setConfirm] = useState(false); const [failed, setFailed] = useState(false);
   return <div className="screen analysis-error"><section role="alert"><h1>저장된 기록과 현재 측정 기록이 충돌했습니다.</h1><p>기존 기록을 자동으로 덮어쓰지 않았습니다.</p>{failed && <p>기록을 초기화하지 못했습니다.</p>}</section><div className="bottom-action"><button className="primary-button" onClick={onViewExisting}>기존 기록 보기</button>{confirm ? <><p>기록을 모두 지울까요? 삭제 후 복구할 수 없습니다.</p><button className="secondary-button" onClick={() => void onClear().then((ok) => setFailed(!ok))}>기록 초기화</button><button className="secondary-button" onClick={() => setConfirm(false)}>취소</button></> : <button className="secondary-button" onClick={() => setConfirm(true)}>기록 초기화</button>}</div></div>;
 }
 function BaselineDateInvalidatedScreen({ onRestart }: { onRestart: () => void }) { return <div className="screen analysis-error"><section role="alert"><p className="eyebrow">측정 다시 시작</p><h1>날짜가 변경되어 측정을 다시 시작해야 합니다.</h1><p>한 번의 기본 검사는 같은 날짜의 기록으로만 분석합니다.</p></section><div className="bottom-action"><button className="primary-button" type="button" onClick={onRestart}>처음부터 다시 측정</button></div></div>; }
-function NextDailyPlaceholder({ onHome }: { onHome: () => void }) { return <div className="screen placeholder-screen"><section><p className="eyebrow">추가 분석 준비</p><h1>다음 추가 분석은<br />다음 단계에서 연결됩니다.</h1><p>DAY 2 기록과 기본 분석은 그대로 유지됩니다.</p><button className="secondary-button" onClick={onHome}>홈으로</button></section></div>; }
+function Day7IntroScreen({ selectedAbility, onStart }: { selectedAbility: Ability | null; onStart: () => void }) { return <div className="screen ready-screen final-calibration-screen"><section><div className="final-calibration-masthead"><span className="final-mini-seal" aria-hidden="true">ㅎ</span><div><strong>FINAL CALIBRATION</strong><small>7일 분석 마지막 보정</small></div></div><p className="eyebrow">최종 분석 준비 완료</p><h1>누적 기록을 바탕으로 마지막 최종 보정을 진행합니다.</h1><p>{selectedAbility ? `${selectedAbility} 측정 근거를 약 15~20초 동안 한 번 더 확인해요.` : 'DAY 1~6 누적 evidence에서 가장 확인이 필요한 능력을 약 15~20초 동안 점검해요.'}</p></section><div className="bottom-action"><button className="primary-button" onClick={onStart}>최종 보정 시작</button></div></div>; }

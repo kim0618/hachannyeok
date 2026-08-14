@@ -1,8 +1,16 @@
-# 제품 명세 — 하찮력
+# 제품 명세 — 쓸능검
+
+## DAILY Ability 의미
+
+DAY 1은 절대 Ability baseline을 만든다. DAY 2~6은 절대 Ability를 다시 평가하지 않고 reference 대비 challenge 조건에서 얼마나 흔들리는지를 baseline에 최대 ±8 modifier로 반영한다. DAY 6는 spread를 reference, clustered를 challenge로 삼는 Focus supporting modifier를 사용하며 여섯 번째 Ability를 만들지 않는다.
 
 ## 제품 정의
 
-`하찮력`은 Apps in Toss용 비게임 행동 기반 검사 앱이다. 사용자가 실제 행동 검사를 수행하면 일상에 거의 쓸모없는 능력을 실제 수치로 분석하고, 서로 다른 로컬 날짜에 짧은 추가 검사를 이어가며 7번째 분석일에 개인 하찮력 사용설명서를 완성한다.
+`쓸능검`은 Apps in Toss용 비게임 행동 기반 검사 앱이다. 사용자가 실제 행동 검사를 수행하면 일상에 거의 쓸모없는 능력을 실제 수치로 분석하고, 서로 다른 로컬 날짜에 짧은 추가 검사를 이어가며 7번째 분석일에 개인 쓸능검 사용설명서를 완성한다.
+
+- Brand: `쓸능검`
+- Descriptor: `쓸데없는 능력 정밀검사`
+- Internal project codename/path: `hachannyeok`
 
 서버, 외부 DB, 로그인은 사용하지 않는다. DAY는 연속 출석일이 아니라 유효 검사를 완료한 분석일 순서다. 방문을 놓쳐도 손실이 없고 같은 로컬 날짜에 여러 분석일을 완료할 수 없다.
 
@@ -43,6 +51,8 @@ DAY 1 결과는 기본 종합점수, 5개 능력치, 기본 유형, 대표 자�
 | DAY 4 | 두 구분선 3등분 2회 | three-way distribution error, largest/smallest/terminal segment bias | `셋으로 나눌 때 마지막 영역을 작게 잡는 편입니다.` |
 | DAY 5 | predictable 2회 + surprise 2회 | control degradation under surprise, reaction lead/lag, error delta | `갑작스러운 변화에서 평균 13% 빨리 반응합니다.` |
 | DAY 6 | 위치 3개 표시/회상 trial 2회 | spatial memory accuracy, directional forgetting bias, response time | `왼쪽 위치를 기억할 때 오차가 더 작습니다.` |
+
+DAY 6는 spread A `(.22,.28),(.72,.30),(.50,.72)`와 clustered B `(.34,.38),(.62,.42),(.48,.66)`를 전체 attempt index로 A/B/A/B/A 순서로 사용한다. 각 trial은 1200ms 노출, 300ms blank 뒤 정답을 숨긴 채 세 위치를 선택한다.
 
 DAY 6 evidence는 최종 분석에서 focus의 보조 evidence로만 사용한다. `memory`라는 여섯 번째 Ability Score를 만들지 않는다.
 
@@ -97,7 +107,7 @@ STATE는 저장 값이 아니라 persisted raw records와 현재 `LocalDateKey`�
 
 ## 공유 → 신규 유입 제품 계약
 
-흐름은 `DAY 1 결과 → 결과 공유 → 수신자가 콘텐츠 확인 → Apps in Toss 하찮력 진입 → 최초 사용자 DAY 1 시작 화면 → Primary CTA 나도 측정하기`다.
+흐름은 `DAY 1 결과 → 결과 공유 → 수신자가 콘텐츠 확인 → Apps in Toss 쓸능검 진입 → 최초 사용자 DAY 1 시작 화면 → Primary CTA 나도 측정하기`다.
 
 공유 콘텐츠는 대표 자격, 유형, 실제 수치 2개, 짧은 해석, CTA를 포함한다. 구현 단계에서 Apps in Toss 공식 문서와 SDK 타입으로 share API, app entry URL, deep link 및 parameter 전달 가능 여부를 검증한다.
 

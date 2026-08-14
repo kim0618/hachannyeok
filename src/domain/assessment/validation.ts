@@ -25,6 +25,8 @@ function hasInvalidBase(value: Record<string, unknown>): boolean {
 
 const conditionSideMatches = (condition: CenterCondition, side: DecorationSide): boolean =>
   (condition === 'plain' && side === 'none') || (condition === 'decoratedLeft' && side === 'left') || (condition === 'decoratedRight' && side === 'right');
+const conditionStimulusMatches = (condition: CenterCondition, stimulusId: unknown): boolean =>
+  (condition === 'plain' && stimulusId === 'day3-plain-01') || (condition === 'decoratedLeft' && stimulusId === 'day3-left-01') || (condition === 'decoratedRight' && stimulusId === 'day3-right-01');
 const isCenterTarget = (value: unknown): boolean => isPoint(value) && value.x === 0.5 && value.y === 0.5;
 
 export function isAnyTrial(input: unknown): input is AnyTrial {
@@ -52,12 +54,12 @@ export function isAnyTrial(input: unknown): input is AnyTrial {
     case 'timeCondition':
       return oneOf(input.condition, ['plain', 'distracted']) && input.targetDurationMs === 3000 && (input.valid ? isMilliseconds(input.observedDurationMs) : observationAbsent('observedDurationMs'));
     case 'centerCondition':
-      return oneOf(input.condition, ['plain', 'decoratedLeft', 'decoratedRight']) && oneOf(input.decorationSide, ['none', 'left', 'right']) && conditionSideMatches(input.condition, input.decorationSide) && isPoint(input.target) && (input.valid ? isPoint(input.observed) : observationAbsent('observed'));
+      return oneOf(input.condition, ['plain', 'decoratedLeft', 'decoratedRight']) && oneOf(input.decorationSide, ['none', 'left', 'right']) && conditionSideMatches(input.condition, input.decorationSide) && conditionStimulusMatches(input.condition, input.stimulusId) && isCenterTarget(input.target) && (input.valid ? isPoint(input.observed) : observationAbsent('observed'));
     case 'balanceThreeWay':
       return input.valid ? Array.isArray(input.cutPositions) && input.cutPositions.length === 2 && isNormalized(input.cutPositions[0]) && isNormalized(input.cutPositions[1]) && input.cutPositions[0] > 0 && input.cutPositions[0] < input.cutPositions[1] && input.cutPositions[1] < 1 : observationAbsent('cutPositions');
     case 'controlCondition': {
       if (!oneOf(input.condition, ['predictable', 'surprise']) || !isNormalized(input.targetPosition) || !isNormalized(input.initialSpeedNormalized) || !isNormalized(input.finalSpeedNormalized)) return false;
-      const changeValid = input.condition === 'predictable' ? input.speedChangeAtNormalizedTime === null : isNormalized(input.speedChangeAtNormalizedTime);
+      const changeValid = input.condition === 'predictable' ? input.initialSpeedNormalized === input.finalSpeedNormalized && input.speedChangeAtNormalizedTime === null : input.initialSpeedNormalized !== input.finalSpeedNormalized && isNormalized(input.speedChangeAtNormalizedTime) && input.speedChangeAtNormalizedTime > 0 && input.speedChangeAtNormalizedTime < 1;
       return changeValid && (input.valid ? isNormalized(input.observedPosition) : observationAbsent('observedPosition'));
     }
     case 'spatialMemory':

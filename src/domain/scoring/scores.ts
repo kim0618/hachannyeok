@@ -1,5 +1,5 @@
-import type { Day1RawResult, DailyRawResult, FinalRawResult } from '../assessment/results';
-import { BASELINE_WEIGHT, DAILY_MAX_WEIGHT, DAILY_SCORE_DELTA_CAP, FINAL_CALIBRATION_WEIGHT, FINAL_SCORE_DELTA_CAP, PREFINAL_WEIGHT } from './calibration';
+import type { Day1RawResult, FinalRawResult } from '../assessment/results';
+import { FINAL_CALIBRATION_WEIGHT, FINAL_SCORE_DELTA_CAP, PREFINAL_WEIGHT } from './calibration';
 import { normalizeBalance, normalizeCenter, normalizeControl, normalizeFocus, normalizeSpatialMemory, normalizeTimeSigned } from './normalizers';
 import { roundScore } from './math';
 import type { Ability, AbilityScores, EvidenceResult } from './types';
@@ -13,9 +13,7 @@ export function scoreBaseline(results: readonly Day1RawResult[]): EvidenceResult
   if (scores.some((value) => value === null)) return { ok: false, reason: 'insufficientEvidence' };
   return { ok: true, value: { time: scores[0]!, center: scores[1]!, balance: scores[2]!, control: scores[3]!, focus: scores[4]! } };
 }
-export const applyDailyScore = (baseline: number, equivalent: number): number => { const candidate = baseline * BASELINE_WEIGHT + equivalent * DAILY_MAX_WEIGHT; const delta = Math.max(-DAILY_SCORE_DELTA_CAP, Math.min(DAILY_SCORE_DELTA_CAP, roundScore(candidate) - baseline)); return roundScore(baseline + delta); };
 export const applyFinalScore = (preFinal: number, equivalent: number): number => { const candidate = preFinal * PREFINAL_WEIGHT + equivalent * FINAL_CALIBRATION_WEIGHT; const delta = Math.max(-FINAL_SCORE_DELTA_CAP, Math.min(FINAL_SCORE_DELTA_CAP, candidate - preFinal)); return roundScore(preFinal + delta); };
-export function dailyEquivalent(result: DailyRawResult): EvidenceResult<{ ability: Ability; score: number }> { let normalized; switch (result.assessmentType) { case 'day2_time_distraction': normalized = normalizeTimeSigned(result.trials); break; case 'day3_decorated_center': normalized = normalizeCenter(result.trials); break; case 'day4_balance_three_way': normalized = normalizeBalance(result.trials); break; case 'day5_control_surprise': normalized = normalizeControl(result.trials); break; case 'day6_spatial_memory': normalized = normalizeSpatialMemory(result.trials); break; } if (!normalized.ok) return normalized; const ability: Ability = ({ day2_time_distraction: 'time', day3_decorated_center: 'center', day4_balance_three_way: 'balance', day5_control_surprise: 'control', day6_spatial_memory: 'focus' } as const)[result.assessmentType]; return { ok: true, value: { ability, score: normalized.value.score } }; }
 export function finalEquivalent(result: FinalRawResult): EvidenceResult<{ ability: Ability; score: number }> {
   let normalized;
   switch (result.assessmentType) {

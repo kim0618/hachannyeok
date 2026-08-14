@@ -71,19 +71,29 @@ baseline을 즉시 덮어쓰는 재검사 버튼은 두지 않는다.
 
 고정 trial 구성은 DAY 2 plain 2+distracted 2, DAY 3 plain 1+좌측 장식 1+우측 장식 1, DAY 4 three-way 2, DAY 5 predictable 2+surprise 2, DAY 6 위치 3개 회상 2회다. minimum valid와 condition별 최소치는 `SCORING_SPEC.md`를 따른다.
 
+DAY 4는 orientation/condition 구분이 없는 horizontal 단일 presentation 과제이며 raw에는 `condition`, `orientation`, `stimulusId`, `configId`를 저장하지 않는다. 초기값은 CONFIG_A `0.28/0.72`, CONFIG_B `0.38/0.62`이고 전체 attempt index에 따라 A/B를 반복한다. DAY 4의 conditionMinimum이 없는 것은 의도된 계약이다.
+
+DAY 4 결과 위계는 `DAY 1 2등분 대비 3등분 안정성 → valid trial별/평균 실제 분배 → 마지막 구간 편향 → Balance 점수`다. 마지막 구간 방향 표시는 기존 terminal component normalization과 tendency display threshold를 통과할 때만 사용하며, 평균에서 상쇄가 생기면 valid trial row를 함께 표시한다.
+
+DAY 5는 left-to-right `0.08→0.92` track에서 predictable A, surprise A, predictable B, surprise B를 attempt index로 반복한다. surprise transition에는 색상·텍스트·flash·sound·haptic cue를 추가하지 않고 속도 변화만 노출한다. 결과는 predictable/surprise 평균 정지 오차와 변화가 primary이며 Control 점수는 secondary다.
+
+DAY 6는 spread A `(.22,.28),(.72,.30),(.50,.72)`와 clustered B `(.34,.38),(.62,.42),(.48,.66)`를 attempt index A/B/A/B/A로 반복한다. `READY → EXPOSURE 1200ms → BLANK 300ms → RECALL 3 taps → TRIAL RESULT`이며 fade 없이 target을 제거한다. Recall에는 정답 hint를 표시하지 않고 선택 marker만 표시한다. 마지막 completion attempt도 RESULT를 거친다.
+
 완료 화면은 변화 개수를 강제하지 않고 항상 다음 세 블록을 보여준다.
 
 1. `새로운 측정` — raw 또는 normalized evidence
 2. `해석` — 근거 범위 안의 짧은 문장
 3. `기존 결과와 비교` — baseline과의 관계, 점수·유형·자격의 변경 또는 유지
 
-DAY 2 결과는 plain/distracted 평균 오차와 차이를 `ms` 단위의 2-column 비교 카드로 먼저 보여준다. 조건 차이가 primary insight이며 Time Ability 점수 변화는 secondary 정보로 둔다. 작은 차이는 실제 `ms` 크기를 함께 쓰고, 오차 변화와 점수 방향이 다르면 점수가 오차뿐 아니라 측정 일관성도 반영한다는 보조 설명만 제공한다.
+DAY 2 결과는 plain/distracted 평균 오차와 차이를 `ms` 단위의 2-column 비교 카드로 먼저 보여준다. 조건 차이가 primary insight이며 Time Ability 점수 변화는 secondary 정보로 둔다. V2 modifier는 조건 차이와 같은 방향을 사용하므로 V1 consistency contradiction 설명은 사용하지 않는다.
 
 임계값을 넘지 않았다면 `점수는 그대로지만 새로운 경향이 확인됐습니다.`라고 표시할 수 있다. STATE D에는 다음 분석이 다른 로컬 날짜에 가능하다는 중립적 안내를 둔다.
 
 ## DAY 7 적응형 최종 보정
 
 STATE E 화면은 누적 evidence 요약과 `근거가 가장 불확실한 능력 하나를 15~20초 동안 추가 확인합니다.`라는 설명을 제공한다. 사용자에게 여러 검사 중 선택하게 하지 않는다.
+
+DAY 7은 새 난이도를 만들지 않고 선택 Ability에 해당하는 기존 deterministic config를 재사용한다. Time은 DAY 2 `plain/distracted/plain`, Center는 DAY 3 `plain/left/right`, Balance는 DAY 1 vertical two-way와 DAY 4 CONFIG_A three-way, Control은 DAY 5 Predictable A/Surprise A/Surprise B, Focus는 DAY 1 visual search Config 2와 DAY 6 clustered B를 전체 attempt index로 반복한다. invalid retry도 다음 attempt identity를 사용한다. completion 마지막 attempt도 반드시 TRIAL RESULT와 `결과 보기`를 거쳐 COMPLETE로 이동한다.
 
 최종 사용설명서의 위계:
 
@@ -119,3 +129,12 @@ DAY 1 공유 콘텐츠는 대표 자격, 유형, 실제 수치 2개, 짧은 해�
 - invalid trial: target/minimum valid를 채우도록 한도 내 추가 시도. 한도 초과 시 `assessmentIncomplete` 안내 후 completion을 저장하지 않고 전체 assessment 다시 시작 CTA 제공
 - 중복 완료: 새 결과를 append하지 않고 기존 완료 결과 표시
 - 손상 데이터: 안전한 초기화 안내. 신뢰할 수 없는 파생 결과를 보여주지 않음
+
+## DAY 3 deterministic visual stimulus
+
+Attempt index로 `day3-plain-01 → day3-left-01 → day3-right-01`을 반복한다. 좌측 장식은 filled circle `(x,y,r)` 5개 `(0.14,0.24,0.055)`, `(0.22,0.39,0.040)`, `(0.11,0.57,0.040)`, `(0.26,0.70,0.026)`, `(0.17,0.82,0.026)`이며 우측은 `xRight = 1 - xLeft` exact mirror다. plain에는 장식이 없고 중앙 x 0.35~0.65에는 장식을 두지 않는다. animation, border, shadow, gradient는 사용하지 않는다.
+# Brand contract
+
+- Brand: `쓸능검`
+- Descriptor: `쓸데없는 능력 정밀검사`
+- Internal project codename/path: `hachannyeok`

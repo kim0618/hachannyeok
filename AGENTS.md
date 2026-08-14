@@ -1,8 +1,8 @@
-# Codex Repository Instructions — 하찮력
+# Codex Repository Instructions — 쓸능검
 
 ## Product
 
-앱인토스용 비게임 행동 검사 앱 `하찮력`이다. 서버 없는 정적 앱이며 사용자의 실제 행동 측정 결과를 로컬에 저장한다.
+앱인토스용 비게임 행동 검사 앱 `쓸능검`이다. 내부 project codename/path는 `hachannyeok`이다. 서버 없는 정적 앱이며 사용자의 실제 행동 측정 결과를 로컬에 저장한다.
 
 ## Primary Role
 

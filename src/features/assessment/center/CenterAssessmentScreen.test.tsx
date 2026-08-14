@@ -32,17 +32,24 @@ describe('CenterAssessmentScreen', () => {
   });
 
   it('RUNNING과 RESULT에서 trial별 shape class를 동일하게 사용한다', () => {
-    render(<CenterAssessmentScreen onComplete={() => undefined} />);
+    render(<CenterAssessmentScreen variationSessionId="center-skin-fixture" onComplete={() => undefined} />);
     fireEvent.click(screen.getByRole('button', { name: '시작하기' }));
+    const firstSkin = [...screen.getByRole('application').classList].find(name => name.startsWith('visual-skin-'));
+    expect(firstSkin).toBeDefined();
     expect(screen.getByRole('application')).toHaveClass('center-shape-rectangle');
     select(99, 250);
     fireEvent.click(screen.getByRole('button', { name: '다시 측정' }));
+    const secondSkin = [...screen.getByRole('application').classList].find(name => name.startsWith('visual-skin-'));
+    expect(secondSkin).not.toBe(firstSkin);
     expect(screen.getByRole('application')).toHaveClass('center-shape-wideRectangle');
     select(99, 250);
     fireEvent.click(screen.getByRole('button', { name: '다시 측정' }));
+    const thirdSkin = [...screen.getByRole('application').classList].find(name => name.startsWith('visual-skin-'));
+    expect(thirdSkin).not.toBe(secondSkin);
     expect(screen.getByRole('application')).toHaveClass('center-shape-square');
     select(200, 250);
     expect(document.querySelector('.center-result-shape')).toHaveClass('center-shape-square');
+    expect(document.querySelector('.center-result-shape')).toHaveClass(thirdSkin!);
   });
 
   it('완료 요약은 valid trial만 사용하고 raw Center result를 전달한다', () => {

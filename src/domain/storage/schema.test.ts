@@ -2,13 +2,15 @@ import { describe, expect, it } from 'vitest';
 import { migratePersistedData } from './migration';
 import { isActiveBaselineSession, isFinalRecord, validatePersistedAppData } from './schema';
 import { day1RawFixture } from '../../test/day1Fixture';
+import { throughDay4Fixture } from '../../test/dailyThroughDay4Fixture';
+import { DAY5_CONTROL_TRIAL_CONFIGS } from '../assessment/day5ControlConfig';
 
 const validTimeTrial = (trialId: string) => ({ trialId, startedAtMs: 0, completedAtMs: 1, valid: true as const, invalidReason: null, kind: 'time' as const, condition: 'baseline' as const, targetDurationMs: 3000 as const, observedDurationMs: 3000 });
 const completeDay1Time = { assessmentType: 'day1_time' as const, trials: [validTimeTrial('t1'), validTimeTrial('t2'), validTimeTrial('t3')] };
 const checkpoint = (completedAssessmentIds: unknown[], partialRawResults: unknown[]) => ({
   sessionId: 's', startedAt: '2026-08-01T00:00:00Z', startedLocalDateKey: '2026-08-01', completedAssessmentIds, partialRawResults,
 });
-const finalTimeTrials = ['plain', 'plain', 'distracted'].map((condition, index) => ({
+const finalTimeTrials = ['plain', 'distracted', 'plain'].map((condition, index) => ({
   trialId: `f${index}`, startedAtMs: 0, completedAtMs: 1, valid: true, invalidReason: null, kind: 'timeCondition', condition, targetDurationMs: 3000, observedDurationMs: 3000,
 }));
 const finalRecord = (outerAbility: string, rawAbility: string) => ({
@@ -25,6 +27,13 @@ describe('persisted root schema와 migration', () => {
     const baseline = { recordId: 'b', sessionId: 's', startedAt: '2026-08-01T00:00:00Z', completedAt: '2026-08-01T00:01:00Z', startedLocalDateKey: '2026-08-01', completedLocalDateKey: '2026-08-01', assessmentRawResults: [{ assessmentType: 'day1_unknown', trials: [] }] };
     expect(() => validatePersistedAppData({ schemaVersion: 1, baseline, dailyRecords: [], metadata: {} })).not.toThrow();
     expect(validatePersistedAppData({ schemaVersion: 1, baseline, dailyRecords: [], metadata: {} })).toEqual({ ok: false, error: 'corruptData' });
+  });
+  it('잘못된 DAY 5 exact config persisted payload를 throw 없이 corruptData로 거부한다', () => {
+    const trials = DAY5_CONTROL_TRIAL_CONFIGS.map((config, index) => ({ ...config, kind: 'controlCondition' as const, trialId: `d5-${index}`, startedAtMs: index, completedAtMs: index + 1, observedPosition: config.targetPosition, valid: true as const, invalidReason: null }));
+    const day5 = { recordId: 'd5', sessionId: 'd5', analysisDay: 5, assessmentType: 'day5_control_surprise', startedAt: '2026-08-16T01:00:00Z', completedAt: '2026-08-16T01:01:00Z', localDateKey: '2026-08-16', rawResult: { assessmentType: 'day5_control_surprise', trials: trials.map((trial, index) => index === 1 ? { ...trial, speedChangeAtNormalizedTime: 0.40 } : trial) } };
+    const payload = { ...throughDay4Fixture, dailyRecords: [...throughDay4Fixture.dailyRecords, day5] };
+    expect(() => validatePersistedAppData(payload)).not.toThrow();
+    expect(validatePersistedAppData(payload)).toEqual({ ok: false, error: 'corruptData' });
   });
   it('완료된 DAY 1 result만 checkpoint 완료 근거로 허용한다', () => {
     expect(isActiveBaselineSession(checkpoint(['day1_time'], [completeDay1Time]))).toBe(true);

@@ -67,9 +67,9 @@ describe('Day2AnalysisScreen', () => {
     expect(screen.getByText('이번 조건 차이는 10ms로 작았어요.')).toBeInTheDocument();
     const scoreSection = screen.getByRole('heading', { name: '시간 감각 점수' }).closest('section');
     expect(scoreSection).toHaveClass('score-secondary');
-    expect(values.after.scores.time).toBe(96);
-    expect(screen.getByText(`${values.before.scores.time} → ${values.after.scores.time}`)).toBeInTheDocument();
-    expect(screen.getByText('점수는 오차뿐 아니라 측정 일관성도 함께 반영해요.')).toBeInTheDocument();
+    expect(values.after.scores.time).toBe(values.before.scores.time);
+    expect(screen.getByText('시간 감각 점수는 그대로 유지됐어요.')).toBeInTheDocument();
+    expect(screen.queryByText('점수는 오차뿐 아니라 측정 일관성도 함께 반영해요.')).not.toBeInTheDocument();
     const replay = deriveAnalysis({ ...baselineRoot, dailyRecords: [makeRecord([3030, 3040], [3040, 3050])] });
     expect(replay.ok && replay.value).toEqual(values.after);
   });

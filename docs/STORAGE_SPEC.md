@@ -4,6 +4,8 @@
 
 Apps in Toss의 공식 검증된 기기 로컬 Storage만 사용한다. 서버·계정 동기화는 없다. **Raw evidence + 최소 세션 상태만 영속 저장**하며 모든 표시 결과는 raw records에서 결정적으로 다시 계산한다.
 
+`CALIBRATION_VERSION = 2` DAILY modifier도 저장하지 않는다. 기존 `schemaVersion = 1` raw payload를 migration 없이 V2 `deriveAnalysis`로 replay한다.
+
 MVP에서는 다음 파생값을 저장하지 않는다: `userState`, `currentAbilityScores`, `previousAbilityScores`, `traits`, `insights`, `certifications`, `profileType`, `analysisStage`, `finalReportUnlocked`, `finalReport`. 성능상 필요가 실제로 확인되기 전에는 파생 캐시도 두지 않는다.
 
 raw trial persisted schema는 `valid` discriminator를 기준으로 valid/invalid arm을 분리한다. valid arm만 완전 observation을 요구하며 invalid arm은 관측 전 실패한 필드를 생략할 수 있다. sentinel `0`, 빈 좌표, 가짜 observation을 저장하지 않는다. `InvalidReason`은 `backgrounded | dateChanged | interrupted | duplicateInput | timingUnavailable | outOfBounds | insufficientObservation` 외 값을 허용하지 않는다. invalid trial은 scoring에서 제외하되 raw session evidence로 보존할 수 있다.

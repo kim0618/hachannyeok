@@ -23,6 +23,20 @@
 
 실제 구현에서는 가능하면 TDS 토큰을 우선하고, 위 색상은 브랜드 표현이 필요한 부분에 제한적으로 사용한다.
 
+### Final Visual System 토큰
+
+19단계부터 전 화면은 `src/styles.css`의 CSS variables를 단일 source of truth로 사용한다.
+
+- 배경/종이: `--bg-ivory`, `--surface-paper`, `--surface-warm`
+- 본문: `--ink-navy`, `--ink-body`, `--ink-muted`
+- 계측기: `--emerald-900`, `--emerald-700`, `--emerald-500`, `--mint-200`
+- 강조/경계: `--gold-muted`, `--line-soft`, `--grid-soft`, `--danger-muted`
+- 형태: `--shadow-soft`, `--shadow-panel`, `--radius-card`, `--radius-panel`, `--radius-cta`
+
+표현 언어는 warm ivory paper 위의 deep navy 계측 결과, emerald instrument panel, 매우 제한적인 gold calibration accent다. 공식 기관 마크를 모사하지 않으며 자격 seal은 `쓸능검` 전용 허구 표식만 사용한다. RUNNING 화면에는 정답을 암시하는 crosshair, midpoint/third guide, proximity cue, target 강조를 추가하지 않는다.
+
+사용자 노출 Brand는 `쓸능검`, Descriptor는 `쓸데없는 능력 정밀검사`이다. `hachannyeok`은 내부 project codename/path로만 유지한다.
+
 ## 타이포
 
 - 화면 제목: 24~28px

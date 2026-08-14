@@ -25,6 +25,14 @@ describe('useTimeTrial', () => {
     expect(result.current.phase).toBe('running');
   });
 
+  it('중복 Start 입력은 active trial을 한 번만 생성한다', () => {
+    const createTrialId = vi.fn(() => 'single-trial');
+    const { result } = renderHook(() => useTimeTrial({ createTrialId }));
+    act(() => { result.current.startTrial(); result.current.startTrial(); });
+    expect(result.current.phase).toBe('running');
+    expect(createTrialId).toHaveBeenCalledOnce();
+  });
+
   it('주입 clock 0 → 3000을 반올림 없이 보존한다', () => {
     const { result, setTime } = setup();
     act(() => result.current.startTrial());

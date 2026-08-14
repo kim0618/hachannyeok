@@ -21,8 +21,9 @@ export type InvalidTimeConditionTrial = InvalidTrialBase & { kind: 'timeConditio
 export type TimeConditionTrial = ValidTimeConditionTrial | InvalidTimeConditionTrial;
 export type CenterCondition = 'plain' | 'decoratedLeft' | 'decoratedRight';
 export type DecorationSide = 'none' | 'left' | 'right';
-export type ValidCenterConditionTrial = ValidTrialBase & { kind: 'centerCondition'; condition: CenterCondition; target: Point; observed: Point; decorationSide: DecorationSide };
-export type InvalidCenterConditionTrial = InvalidTrialBase & { kind: 'centerCondition'; condition: CenterCondition; target: Point; decorationSide: DecorationSide; observed?: null };
+export type CenterStimulusId = 'day3-plain-01' | 'day3-left-01' | 'day3-right-01';
+export type ValidCenterConditionTrial = ValidTrialBase & { kind: 'centerCondition'; condition: CenterCondition; stimulusId: CenterStimulusId; target: Point; observed: Point; decorationSide: DecorationSide };
+export type InvalidCenterConditionTrial = InvalidTrialBase & { kind: 'centerCondition'; condition: CenterCondition; stimulusId: CenterStimulusId; target: Point; decorationSide: DecorationSide; observed?: null };
 export type CenterConditionTrial = ValidCenterConditionTrial | InvalidCenterConditionTrial;
 export type ValidBalanceThreeWayTrial = ValidTrialBase & { kind: 'balanceThreeWay'; cutPositions: [number, number] };
 export type InvalidBalanceThreeWayTrial = InvalidTrialBase & { kind: 'balanceThreeWay'; cutPositions?: null };
@@ -34,4 +35,3 @@ export type ValidSpatialMemoryTrial = ValidTrialBase & { kind: 'spatialMemory'; 
 export type InvalidSpatialMemoryTrial = InvalidTrialBase & { kind: 'spatialMemory'; shownPositions: Point[]; selectedPositions?: Point[]; exposureDurationMs?: number; responseTimeMs?: number };
 export type SpatialMemoryTrial = ValidSpatialMemoryTrial | InvalidSpatialMemoryTrial;
 export type AnyTrial = TimeTrial | CenterTrial | BalanceTwoWayTrial | ControlTrial | FocusTrial | TimeConditionTrial | CenterConditionTrial | BalanceThreeWayTrial | ControlConditionTrial | SpatialMemoryTrial;
-

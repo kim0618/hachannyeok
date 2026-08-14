@@ -1,5 +1,5 @@
-import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 import { deriveAnalysis } from '../../domain/scoring/deriveAnalysis';
 import { baselineFixture, day1RawFixture } from '../../test/day1Fixture';
 import { BasicAnalysisScreen } from './BasicAnalysisScreen';
@@ -12,17 +12,31 @@ describe('BasicAnalysisScreen', () => {
     expect(analysis.ok).toBe(true);
     render(<BasicAnalysisScreen baseline={baselineFixture} analysis={analysis} onRestart={() => undefined} onHome={() => undefined} />);
     if (!analysis.ok) return;
+    expect(screen.getByText('쓸능검 · 기본 분석')).toBeInTheDocument();
+    expect(screen.getByText('종합 쓸능검')).toBeInTheDocument();
     expect(screen.getByText(String(analysis.value.overallScore))).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: profileDisplay(analysis.value.profile)! })).toBeInTheDocument();
     expect(screen.getByText(profileVariantDisplay(analysis.value.profile.profileVariantKey))).toBeInTheDocument();
     expect(screen.getByText('5개 능력치')).toBeInTheDocument();
-    Object.values(analysis.value.scores).forEach((score) => expect(screen.getByText(String(score))).toBeInTheDocument());
+    const compact = screen.getByLabelText('기본 분석 5개 능력 요약');
+    expect(compact.children).toHaveLength(5);
+    Object.entries(analysis.value.scores).forEach(([ability, score]) => {
+      const cell = within(compact).getByText(String(score)).parentElement!;
+      expect(cell).toHaveTextContent(({ time: '시간', center: '중심', balance: '균형', control: '통제', focus: '집중' } as const)[ability as keyof typeof analysis.value.scores]);
+    });
     expect(screen.getByText(/평균 3\.000초/)).toBeInTheDocument();
     expect(screen.getByText(/3회 중 2회/)).toBeInTheDocument();
     expect(document.body.textContent).not.toContain(analysis.value.profile.profileFamilyKey);
     expect(document.body.textContent).not.toContain(analysis.value.profile.profileVariantKey);
     expect(document.body.textContent).not.toMatch(/special|grade1|grade2|grade3|observer/);
-    expect(screen.getByRole('button', { name: '결과 공유하기' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: '결과 공유하기' })).toBeEnabled();
+    expect(document.querySelector('.certification-hero .certification-seal')).toHaveAttribute('aria-hidden', 'true');
+    expect(screen.getByText('주요 자격 인증')).toBeInTheDocument();
+    expect(document.querySelector('.certification-seal-copy')).toHaveTextContent('PRECISION CERTIFIED');
+    expect(document.querySelector('.certification-hero')?.children).toHaveLength(2);
+    expect(document.querySelector('.certification-hero')?.firstElementChild).toHaveClass('certification-seal');
+    expect(document.querySelector('.certification-copy > strong')).toHaveTextContent('화면중앙감별사 특급');
+    expect(document.querySelector('.analysis-hero .overall-score')).toBeInTheDocument();
   });
   it('baseline 누락과 insufficient evidence를 명시적으로 처리한다', () => {
     const view = render(<BasicAnalysisScreen onRestart={() => undefined} onHome={() => undefined} />);
@@ -33,7 +47,7 @@ describe('BasicAnalysisScreen', () => {
   it('calculationFailure를 0점 정상 결과 대신 안전 오류 화면으로 처리한다', () => {
     render(<BasicAnalysisScreen baseline={baselineFixture} analysis={{ ok: false, reason: 'calculationFailure' }} onRestart={() => undefined} onHome={() => undefined} />);
     expect(screen.getByRole('heading', { name: '분석에 필요한 기록이 충분하지 않습니다.' })).toBeInTheDocument();
-    expect(screen.queryByText('종합 하찮력')).not.toBeInTheDocument();
+    expect(screen.queryByText('종합 쓸능검')).not.toBeInTheDocument();
   });
   it('Focus 정답이 0개면 실제 정답 수와 정답 반응 기록 없음을 표시한다', () => {
     const assessmentRawResults = day1RawFixture.map((result) => result.assessmentType === 'day1_focus_search'
@@ -56,6 +70,15 @@ describe('BasicAnalysisScreen', () => {
     render(<BasicAnalysisScreen baseline={baselineFixture} analysis={analysis} onRestart={() => undefined} onHome={() => undefined} />);
     expect(screen.getByRole('button', { name: '상세 분석 보기' })).toBeDisabled();
     expect(screen.getByText('상세 분석은 준비 중입니다.')).toBeInTheDocument();
+  });
+  it('활성 Basic CTA가 실제 presentation message를 adapter에 전달한다', async () => {
+    expect(analysis.ok).toBe(true);
+    const open = vi.fn().mockResolvedValue(undefined);
+    render(<BasicAnalysisScreen baseline={baselineFixture} analysis={analysis} sharePort={{ open }} onRestart={() => undefined} />);
+    fireEvent.click(screen.getByRole('button', { name: '결과 공유하기' }));
+    await waitFor(() => expect(open).toHaveBeenCalledTimes(1));
+    expect(open.mock.calls[0]?.[0]).toContain(analysis.ok ? `종합 쓸능검 ${analysis.value.overallScore}점` : '');
+    expect(screen.getByRole('heading', { name: analysis.ok ? profileDisplay(analysis.value.profile)! : '' })).toBeInTheDocument();
   });
 });
 

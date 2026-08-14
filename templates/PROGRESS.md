@@ -2,11 +2,109 @@
 
 ## 현재 단계
 
-- 단계 번호: 13.5
-- 단계 이름: DAY 2 UX/측정 강도 보정
+- 단계 번호: 21.3.1-FIX
+- 단계 이름: Time READY 화면 중복 단계 제거
 - 상태: 완료
+- 다음: 21.3.2 Time RUNNING Visual Reconstruction
+
+## 21.3.1-FIX 검증
+
+- App-level 기존 CSS READY와 `assessment-ready` state 제거
+- `INTRO → Time READY reference → RUNNING → RESULT` 단일 flow 적용
+- Time 내부 Start click 1회, 중복 Start active trial 생성 방지 테스트 추가
+- RUNNING에서 READY poster와 reference 카피 unmount 확인
+- 76 files / 411 tests, typecheck, lint, build:web, build:ait, build, `git diff --check` 통과
+
+## 21.3.1 검증
+
+- `쓸3.png`를 DAY1 Time READY visible artwork 단일 source로 적용
+- 기존 `assessment.startTrial` transparent CTA overlay와 sr-only 의미 정보 유지
+- RUNNING 진입 후 READY poster와 reference 의미 DOM 제거 확인
+- 기존 cancel 계약이 없어 `검사 중단`은 artwork로만 유지
+- 320/360/390/412/430/desktop 및 reference side-by-side 캡처 완료
+- 76 files / 410 tests, typecheck, lint, build:web, build:ait, build, `git diff --check` 통과
+
+## 21.2 검증
+
+- INTRO visible artwork를 `public/assets/intro-reference.png` 단일 asset으로 적용
+- transparent Start/Back overlay와 sr-only 의미 정보 유지
+- 360/412/430/desktop 및 reference side-by-side 캡처 완료
+- 76 files / 409 tests, typecheck, lint, build:web, build:ait, build, `git diff --check` 통과
 
 ## 완료
+
+- 20.3단계 Analysis Report Polish
+  - Basic/Final calibrated overall hero, profile statement, compact certification과 5 Ability summary
+  - profile high/low 기반 strongest/weakest marker; 새 threshold 없음
+  - raw evidence report rows와 STRENGTH/WATCH/CAUTION manual hierarchy
+  - DAY2~6 공통 condition comparison / delta / secondary score visual grammar
+  - Final 7/7 completion, metric cells, analysis-note Cross Insight, compact accumulated evidence/actions
+  - details/heading/disabled share/aria-hidden 유지
+  - scoring/raw/storage/navigation/state machine 변경 없음
+  - 전체 검증: typecheck, lint, 69 files / 396 tests, build:web, build:ait, build, `git diff --check` 통과
+  - 다음 단계: 20.4 전체 Product Visual/Interaction QA
+
+- 20.2단계 Safe Deterministic Stimulus Variation
+  - stable session hash + assessmentType + total attempt index 기반 4종 visual skin
+  - Math.random/dependency/persistence 없는 재현 가능 selector와 test override
+  - Center approved shape sequence, Balance/Control/Focus/Memory exact config와 scoring/raw/storage 불변
+  - DAY3/DAY4/DAY5/DAY6/Final은 decorative shell만 변형
+  - contamination 보호 및 RUNNING→RESULT same skin, retry next skin
+  - 360×800 attempt matrix 수동 캡처 준비 완료; native/manual visual QA 필요
+  - 전체 검증: typecheck, lint, 69 files / 396 tests, build:web, build:ait, build, `git diff --check` 통과
+  - 다음 단계: 20.3 Analysis Report Polish
+
+- 19.5단계 Final Visual Polish
+  - DAY7 공통 final frame, FINAL CALIBRATION masthead, 7일 분석 마지막 보정 문구와 branded mini seal
+  - Basic/Final 공통 fictional certification seal: 하찮력, ㅎ, PRECISION CERTIFIED, concentric ring/tick
+  - Final Analysis DAY별 evidence disclosure: 접힌 상태 label/대표 수치, 펼친 상태 전체 raw-derived evidence
+  - interaction/measurement/scoring/raw/storage/navigation 변경 없음
+  - typecheck, lint, 67 files / 386 tests, build:web, build:ait, build, `git diff --check` 통과
+  - 다음 단계: Share integration 및 Apps in Toss Native QA
+
+- 19단계 Final Visual System
+  - warm ivory/paper, deep navy, emerald/mint, muted gold의 전역 token 적용
+  - precision dial/ticks/grid/corner bracket와 instrument-panel CTA 공통화
+  - DAY1~7 ready/result/analysis, Basic/Final certificate, error/storage state 시각 통일
+  - 360×800 중심 320/390/430 responsive와 safe-area/touch/focus-visible 유지
+  - Center/Balance/Control/Focus/Memory RUNNING measurement contamination 보호
+  - 새 dependency 및 기능/scoring/raw/storage 변경 없음
+  - 전체 검증: typecheck, lint, 67 files / 386 tests, build:web, build:ait, build, `git diff --check` 통과
+  - Chromium 360×800: body warm ivory, CTA 56px, scrollWidth 360px, 가로 overflow 없음
+  - 다음 단계: Final Visual QA
+
+- 18단계 DAY7 독립 코드 리뷰 수정
+  - Critical 0 / Major 5 수정 완료
+  - final memory exposure/blank stale timer와 Control exact-end/RAF lifecycle 방어
+  - finalFocus double RAF 이후 측정 시작, interaction 직전 날짜 재검사
+  - finalBalance divider crossing 방지와 공통 runtime validation 적용
+  - Cross Insight 내부 content key를 사용자 카피로 치환
+  - DAY1~7 실제 raw evidence 기반 누적 근거 표시와 취급 주의사항/metric/STATE E·F 카피 보강
+  - selector/scoring/calibration/raw/schema/storage 및 DAY1~6 protocol 변경 없음
+  - 전체 검증: typecheck, lint, 67 files / 380 tests, build:web, build:ait, build, `git diff --check` 통과
+  - 다음 단계: 최종 실기 QA
+
+- 18단계 DAY7 Final Calibration 및 최종 분석서
+  - DAY1~6 evidence 기반 기존 selector와 selected Ability→final arm 1:1 mapping
+  - 기존 DAY1~6 deterministic config/helper를 재사용한 5개 final arm
+  - attempt-index retry identity와 completion exact-config runtime boundary
+  - date/background, 마지막 RESULT, FinalRecord idempotent save와 STATE F/reload
+  - 기존 final 80/20·±6·selected-only scoring 유지
+  - final metrics, Cross Insight 최대 2개/fallback, 누적 evidence와 진단 경계 최종 분석서
+  - Share SDK는 integration gate로 미연결
+  - 전체 검증: typecheck, lint, 66 files / 371 tests, build:web, build:ait, build, `git diff --check` 통과
+  - 다음 단계: 18단계 독립 코드 리뷰
+
+- 17단계 DAY6 독립 코드 리뷰 수정
+  - Critical 0 / Major 1 / Minor 1
+  - invalid retry에서도 원본 attempt index로 spread A/clustered B identity 보존
+  - presentation, Focus modifier, tendency가 공통 A/B 판정 helper 사용
+  - DAY6 Analysis 전용 정상/invalid retry 회귀 테스트 추가
+  - SCORING_SPEC tendency를 spread/clustered V2 비교와 정합화
+  - blank background와 stale blank callback 회귀 보강, optional undefined raw key 제거
+  - scoring/calibration/raw schema/Storage와 DAY1~5 protocol 변경 없음
+  - 전체 검증: typecheck, lint, 62 files / 357 tests, build:web, build:ait, build, `git diff --check` 통과
+  - 다음 단계: DAY6 실기 QA
 
 - 1단계: Apps in Toss SDK 3.x 및 `@apps-in-toss/web-framework@3.0.2` 고정
 - 2단계: React 최소 기반과 typecheck/lint/test/build 파이프라인 구성
@@ -187,7 +285,7 @@
 
 ## 남은 calibration 항목
 
-초기 구현 숫자는 `CALIBRATION_VERSION = 1`의 provisional constants로 고정됐다. 출시 전 파일럿 데이터로 검사별 quality/dispersion worst range, tendency/condition threshold와 provisional weights/cap/margin/tier를 version 증가와 함께 보정한다. 구조/invariant 변경은 별도 schema/product contract 변경이다.
+현재 `CALIBRATION_VERSION = 2`는 DAILY condition-centered modifier를 사용한다. 출시 전 파일럿 데이터로 검사별 worst range, tendency/condition threshold와 cap/margin/tier를 version 증가와 함께 보정한다.
 
 ## 남은 Minor TODO
 
@@ -196,9 +294,39 @@
 
 ## 다음 작업
 
-### DAY 2 실기 QA
+### 17단계 독립 코드 리뷰
 
-실제 기기에서 DAY 2 10~20초 timing, plain/distracted 시각 조건, reduced-motion 완화, background/date invalidation, 저장·강제 종료/재실행 복원을 확인한다. Apps in Toss native Storage bridge의 강제 종료/재실행 QA는 출시 전 실제 기기 TODO로 유지한다.
+DAY 6 exact config, exposure/blank/recall lifecycle, matching, Focus-only V2 modifier, Storage와 STATE D/E 연결을 독립 검토한다.
+
+## 17단계 DAY6 순간 위치 기억 추가 분석
+
+- spatial memory supporting evidence이며 별도 Memory Ability 없음
+- spread/clustered exact coordinates와 A/B/A/B/A deterministic sequence
+- exposure 1200ms, blank 300ms, recall 3 taps와 monotonic response time
+- 3! minimum-distance matching과 lexicographic tie-break
+- Focus-only V2 modifier, DAY 1 Focus baseline 기준 no-compounding
+- analysisDay 6 저장, 심화 분석 5/5, 같은 날 STATE D와 다음 날 STATE E
+- DAY 7은 최종 보정 placeholder까지만 연결
+- DAY 1~5 회귀와 native Storage QA TODO 유지
+- 전체 검증: 61 files / 353 tests 및 typecheck/lint/web/AIT/전체 build/`git diff --check` 통과
+
+## DAY 5 마지막 trial 결과 UX 수정
+
+- 모든 DAY 5 attempt가 마지막 completion attempt를 포함해 TRIAL RESULT를 거치도록 phase 전환 분리
+- 마지막 valid result의 목표/실제 위치/오차와 `결과 보기` CTA 표시 후 COMPLETE 진입
+- 중간 `다음 측정`과 retry `다시 측정` 계약 유지
+- attempt 5~7 retry completion, duplicate CTA, raw trial count 및 기존 scoring 회귀 테스트 추가
+- completion/config/raw/scoring/calibration/Storage 변경 없음
+- 전체 검증: 57 files / 334 tests 및 typecheck/lint/web/AIT/전체 build/`git diff --check` 통과
+
+## 16.6단계 DAILY Ability Scoring V2
+
+- DAILY absolute remeasurement 제거 및 DAY 1 baseline + condition modifier 적용
+- DAY 2~5 reference/challenge mapping과 positive/negative/neutral modifier, ±8 cap, no-compounding 고정
+- `CALIBRATION_VERSION = 2`, 기존 persisted raw를 migration 없이 V2로 replay
+- V1 consistency contradiction copy 제거
+- Storage/raw/schema, DAY 1과 DAY 2~5 measurement protocol, DAY 7 final calibration 변경 없음
+- 전체 검증: 57 files / 331 tests 및 typecheck/lint/web/AIT/전체 build/`git diff --check` 통과
 
 ## 13단계 DAY 2 구현
 
@@ -225,9 +353,74 @@
 
 ## 마지막 검증
 
+## 16단계 DAY 5 surprise control degradation 추가 분석
+
+- predictable/surprise exact 4-config와 attempt-index retry sequence
+- initial-speed traversal 기준 normalized transition과 piecewise position math
+- exact-end invalid, stop/RAF/background/date race 단일 확정
+- DailyRecord analysisDay=5 append, 동일 payload save retry와 DAY 1~4 보존
+- predictable/surprise 오차 변화 primary, Control score secondary, 심화 분석 4/5
+- Control-only update, 같은 날 STATE D와 다음 날짜 DAY 6 placeholder
+- scoring/calibration/raw/Storage schema/dependency 변경 없음
+- 56 files / 310 tests 및 typecheck/lint/web/AIT/전체 build/`git diff --check` 통과
+
+## 16단계 DAY 5 독립 코드 리뷰 수정
+
+- Critical 0 / Major 2 / Minor 2 리뷰 결과를 모두 수정
+- DAY 5 exact config runtime completion/persistence boundary와 attempt 1~7 sequence 검증
+- generic ControlCondition validator는 기존 재사용 계약 유지
+- stop/end/background/date/unmount에서 RAF generation invalidate 및 stale callback trial isolation
+- transition 직전/exact/직후 연속성 회귀 테스트 추가
+- noneligible nonzero delta를 `변화 거의 없음`으로 정렬하고 DAY 6 placeholder 카피 수정
+- scoring/calibration, raw/Storage schema, DAY 1~4 protocol, dependency 변경 없음
+- 56 files / 319 tests 및 typecheck/lint/web/AIT/전체 build/`git diff --check` 통과
+- DAY 5 실기 QA 진행
+
+## 15.5단계 DAY 4 결과 해석 UX 보정
+
+- terminal direction component를 기존 Balance normalization/TENDENCY threshold로 별도 판단
+- 새 threshold 없이 미세 sign 방향 단정 제거
+- primary를 DAY 1 2등분 대비 DAY 4 3등분 안정성으로 변경
+- valid trial별 분배/평균/33.3% 기준과 cancellation 설명 추가
+- scoring/raw/calibration/Storage 및 DAY 1~3 변경 없음
+- 52 files / 293 tests 및 typecheck/lint/web/AIT/전체 build/`git diff --check` 통과
+
+## 15단계 DAY 4 다중 분배 성향 추가 분석
+
+- orientation/condition 없는 horizontal 단일 과제와 기존 raw/completion 계약 유지
+- CONFIG_A `0.28/0.72`, CONFIG_B `0.38/0.62`의 attempt-index A/B 반복
+- 두 divider pointer/keyboard, crossing 차단, confirm-only raw와 duplicate guard
+- background/date invalidation, retry/incomplete 및 DAY 4-only restart
+- DailyRecord analysisDay=4 append, 동일 payload save retry와 baseline/DAY2/DAY3 보존
+- 실제 평균 segment와 33.3% 기준 비교, DAY 1 two-way 대비 오차 및 Balance secondary
+- Balance-only update, 심화 분석 3/5, 같은 날 STATE D와 다음 날짜 DAY 5 placeholder
+- scoring/calibration/raw/schema/dependency 변경 없음
+- 51 files / 288 tests 및 typecheck/lint/web/AIT/전체 build/`git diff --check` 통과
+
+## 14단계 DAY 3 시각 유도 편향 추가 분석
+
+- deterministic plain/left/right stimulus, raw stimulusId, exact mirror geometry와 exact center invariant
+- normalized pointer, duplicate/background/date lifecycle와 retry/completion
+- DailyRecord analysisDay=3, Storage coordinator, same-payload save retry
+- baseline+DAY2 보존, Center-only update, neutral 포함 directional tendency
+- DAY 1 vs DAY 3 비교/diagram, Center score secondary, 심화 분석 2/5
+- 같은 날 STATE D, 다음 날짜 DAY 4 placeholder, rollback unlock 금지
+- DAY 1/2/Storage 회귀 포함 45 files / 272 tests 통과
+
+### 14단계 독립 코드 리뷰 수정
+
+- Critical 0 / Major 1 / Minor 1
+- DAY 3 diagram과 legend의 baseline/day3/true-center marker mapping을 전용 class로 일치시킴
+- diagram/legend marker가 동일 CSS 선언을 공유해 색상·테두리 drift를 방지함
+- `role="img"`와 세 비교점의 완전한 접근성 설명 추가
+- scoring/raw/persistence 및 DAY 1/2 변경 없음
+- 45 files / 273 tests와 전체 검증 통과
+
+다음 작업은 DAY 3 실기 QA다. Apps in Toss native Storage bridge 강제 종료/재실행 QA TODO는 유지한다.
+
 - `npm run typecheck`: 통과
 - `npm run lint`: 통과
-- `npm run test`: 40 files / 252 tests 통과
+- `npm run test`: 56 files / 319 tests 통과
 - `npm run build:web`, `npm run build:ait`, `npm run build`: 모두 통과
 - `git diff --check`: 통과
 - 새 dependency/config/scoring/assessment protocol 변경 없음, production localStorage 미사용
@@ -247,3 +440,60 @@
 
 - hash: `9836d21`
 - message: `검수`
+
+## 20.1단계 Assessment Visual Identity Upgrade
+
+- [x] Time precision stopwatch / empty RUNNING / calibrated RESULT
+- [x] Center answer-free optical frame
+- [x] Balance partition rail/handle와 RUNNING edge ticks
+- [x] Control movement rail, proximity feedback 없음
+- [x] Focus neutral matrix, actual target preview 없음
+- [x] Memory dummy constellation, actual A/B preview 없음
+- [x] Final Calibration selected identity 재사용
+- [x] decorative state와 measurement state 분리 및 contamination tests
+- [x] 320/360/390/430 responsive CSS boundary
+- [ ] Apps in Toss native device visual QA
+
+## 20.5단계 Release Visual Fix
+
+- [x] Basic/Final shared certification seal overflow 수정
+- [x] Final evidence title/value DOM 분리 및 320/360/390/430 overlap 0
+- [x] DAY 3 overlapping marker 동심 ring mapping과 raw 좌표 유지
+- [x] Final Calibration 360px heading orphan 제거
+- [x] DAY 5 condition header wrapping 정리
+- [x] Final report 반복 spacing 축소
+- [x] 360×800 필수 7장 및 320/390/430 horizontal overflow QA
+- [x] 70 files / 398 tests 및 typecheck/lint/web/AIT/전체 build/`git diff --check` 통과
+- [ ] Next: Share Integration + Apps in Toss Native QA
+
+## 21단계 Apps in Toss Share Integration
+
+- [x] web-framework 3.0.2 `Share.sendMessage` / `Share.createLink` 타입 계약 확인
+- [x] SharePort와 Apps in Toss adapter 분리
+- [x] Basic/Final deterministic presentation-only message
+- [x] 기본 message-only, explicit test/prod deep-link injection
+- [x] link 생성 실패 시 silent fallback 없는 error
+- [x] Basic/Final CTA idle/sharing/error와 double-click guard
+- [x] share rejection 후 결과 화면/Storage 유지 및 재시도
+- [x] Chromium navigator.share fallback 없음
+- [x] 73 files / 406 tests 및 typecheck/lint/web/AIT/전체 build/`git diff --check` 통과
+- [ ] Toss Sandbox Basic/Final share sheet Android/iOS Native QA
+- [ ] private test link 실제 클릭과 앱 진입
+- [ ] share 취소/재시도 및 Storage root 불변 Native QA
+- [ ] Next: 22단계 Apps in Toss Native QA
+
+## 20.6단계 Final Art Direction Pass
+
+- [x] Home branded 5-axis scan instrument
+- [x] Time outer tick ring / numeric clear zone / empty RUNNING
+- [x] Center decorative/input depth 분리, center cue 없음
+- [x] Balance sparse ticks / precision handle, target guide 없음
+- [x] Control cap/tick hierarchy, proximity cue 없음
+- [x] Focus neutral READY/RUNNING visual family, target preview 없음
+- [x] DAY3 exact-coordinate concentric marker mapping
+- [x] DAY5 wrapping / DAY6 matching line / Final Calibration heading polish
+- [x] Basic/Final report hero와 chapter document rhythm 정리
+- [x] 320/360/390/430 horizontal overflow 및 주요 overlap 0
+- [x] 73 files / 406 tests 유지
+- [x] Current: 20.6 Final Art Direction Pass 완료
+- [ ] Next: Apps in Toss Native QA

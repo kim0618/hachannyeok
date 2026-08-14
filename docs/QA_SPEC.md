@@ -2,6 +2,10 @@
 
 ## 자동 테스트
 
+- DAILY V2 condition-centered positive/negative/neutral modifier, ±8 cap과 DAY 1 baseline 기준 no-compounding
+- DAY 2 plain/distracted, DAY 3 plain/decorated, DAY 4 two-way/three-way, DAY 5 predictable/surprise score 방향 정합성
+- CALIBRATION_VERSION 2 raw replay와 overall/profile/certification 결정성
+
 - 점수 계산 경계값
 - 빈 입력과 잘못된 입력
 - 유형 판정
@@ -61,9 +65,18 @@ DAY 1 완료 이후 baseline re-assessment/overwrite와 부분 재검사는 MVP�
 
 - DAY 2~6 실기 목표는 10~20초, DAY 7은 15~20초다.
 - 360×800 기준 실제 기기에서 화면 전환과 입력 시간을 포함해 확인한다.
-- DAY 6 `exposureDurationMs`나 화면 전환 시간을 제품 계약 상수로 과도하게 고정하지 않는다.
+- DAY 6 확정 계약은 spread/clustered A/B/A/B/A, exposure 1200ms, blank 300ms, recall 3 taps다. response time은 recall 활성화부터 세 번째 선택까지이며 exposure/blank를 제외한다.
+- DAY 6 matching은 3! 전체 permutation의 minimum total Euclidean distance와 lexicographic tie-break를 검증한다. Focus V2는 spread reference/clustered challenge, DAY 1 Focus baseline 기준 ±8 cap이며 여섯 번째 Ability를 만들지 않는다.
 - trial 계약을 지키면서 목표를 넘으면 trial 수는 Calibration/Product revision으로만 바꾸며 구현자가 임의 축소하지 않는다.
 
 ## DAY 2 motion 접근성
 
 DAY 2 `distracted` condition은 행동 측정 조건이므로 `prefers-reduced-motion`에서도 시각적 방해를 완전히 제거하지 않는다. 대신 이동 거리와 motion intensity를 완화하며 blink/flash/scale/rotation 자극은 사용하지 않는다. 동일 particle DOM과 raw/scoring 계약을 유지하고 motion preference 자체는 raw evidence에 저장하지 않는다.
+
+## DAY 4 interaction
+
+DAY 4는 horizontal 단일 3등분 과제다. raw에는 condition/orientation 필드가 없고 conditionMinimum도 사용하지 않는다. 전체 attempt index 기준 CONFIG_A `0.28/0.72`, CONFIG_B `0.38/0.62`를 A/B로 반복하며 retry도 같은 결정적 순서를 따른다.
+
+## DAY 5 movement
+
+DAY 5는 `0.08→0.92` left-to-right 고정 track과 네 exact predictable/surprise config를 사용한다. transition 직전·정확한 경계·직후의 piecewise 위치 연속성, 각 config의 end-epsilon/exact-end/after-end, stop-first/RAF-first 동일 결과, retry 5~7의 config 1~3 반복을 확인한다. transition 별도 cue와 live announcement는 사용하지 않는다.

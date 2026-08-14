@@ -1,7 +1,7 @@
 # 프로젝트 변수 — 작업 전 수정
 
 - APP_NAME: hachannyeok
-- DISPLAY_NAME: 하찮력
+- DISPLAY_NAME: 쓸능검
 - PRIMARY_COLOR: #5B8DEF
 - PACKAGE_MANAGER: npm
 - APP_TYPE: Apps in Toss WebView non-game

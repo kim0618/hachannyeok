@@ -1,0 +1,2 @@
+import { PrimaryButton } from '../../../components/PrimaryButton';
+export function Day4IntroScreen({ onStart }: { onStart: () => void }) { return <div className="screen daily-intro-screen"><main><p className="eyebrow">추가 분석 3 / 5</p><h1>셋으로 나누면<br />어디가 커질까요?</h1><p>두 개의 선을 움직여 세 구간이 같아 보이도록 나눠 주세요.</p><p className="duration-copy">약 10~20초</p></main><div className="bottom-action"><PrimaryButton onClick={onStart}>추가 분석 시작</PrimaryButton></div></div>; }

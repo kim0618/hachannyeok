@@ -1,6 +1,9 @@
 import { FINAL_ASSESSMENT_ABILITY_MAP, isAssessmentType, isFinalAssessmentType, type AssessmentRawResult } from './results';
 import type { AnyTrial } from './trials';
 import { isAnyTrial } from './validation';
+import { isDay5ControlTrialForAttempt } from './day5ControlConfig';
+import { isDay6SpatialMemoryTrialForAttempt } from './day6SpatialMemoryConfig';
+import { isFinalTrialForAttempt } from './finalCalibrationConfig';
 
 export const MAX_ADDITIONAL_ATTEMPTS = 3;
 export type CompletionStatus =
@@ -42,6 +45,9 @@ export function validateCompletion(input: unknown): CompletionStatus {
   const rule = RULES[result.assessmentType];
   const attempts = result.trials;
   if (!attempts.every(isAnyTrial) || !attempts.every((trial) => rule.validKinds.includes(trial.kind))) return { status: 'invalidAssessment' };
+  if (result.assessmentType === 'day5_control_surprise' && !attempts.every((trial, index) => trial.kind === 'controlCondition' && isDay5ControlTrialForAttempt(trial, index))) return { status: 'invalidAssessment' };
+  if (result.assessmentType === 'day6_spatial_memory' && !attempts.every((trial, index) => trial.kind === 'spatialMemory' && isDay6SpatialMemoryTrialForAttempt(trial, index))) return { status: 'invalidAssessment' };
+  if (isFinalAssessmentType(result.assessmentType) && !attempts.every((trial, index) => isFinalTrialForAttempt(result as unknown as import('./results').FinalRawResult, trial, index))) return { status: 'invalidAssessment' };
   if (attempts.length < rule.target) return { status: 'notEnoughAttempts', remainingTargetAttempts: rule.target - attempts.length };
   if (attempts.length > rule.target + MAX_ADDITIONAL_ATTEMPTS) return { status: 'assessmentIncomplete' };
   const targetAttempts = attempts.slice(0, rule.target);

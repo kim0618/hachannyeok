@@ -4,8 +4,60 @@
 
 ## 1. Current Phase
 
-- 현재 단계: **13.5단계 — DAY 2 UX/측정 강도 보정 완료**
-- 다음 단계: **DAY 2 실기 QA**
+- Current: **21.3.1-FIX Time READY 화면 중복 단계 수정 완료**
+- Next: **21.3.2 Time RUNNING Visual Reconstruction**
+- 중복 원인은 App-level `assessment-ready`와 `TimeAssessmentScreen` hook-level `ready`가 연속으로 존재한 것이었음. App-level screen/type/component를 제거하고 INTRO `onStart`를 기존 `beginBaseline`에 직접 연결함.
+- 실제 flow는 `INTRO → Time READY reference → RUNNING → RESULT`이며 Time 내부 Start는 1회임. `beginBaseline`은 session만 만들고 측정 clock은 기존대로 reference CTA의 `assessment.startTrial`에서 시작함.
+- 기존 CSS READY의 visible DOM/component는 제거함. RUNNING 진입 시 reference poster와 `3.000 / REFERENCE / 대기 중` 접근성 DOM도 unmount됨.
+- 중복 Start는 hook의 기존 active guard로 trial ID를 한 번만 만들며 명시적 회귀 테스트를 추가함. HOME/INTRO asset과 RUNNING/RESULT presentation 및 timing/raw/scoring/storage 계약은 변경하지 않음.
+- 전체 검증은 76 files / 411 tests, typecheck, lint, build:web, build:ait, build, `git diff --check` 통과.
+- Previous: **21.3.1 DAY1 Time READY Reference Asset 적용 — 사용자 시각 승인 대기**
+- `/mnt/c/Users/jinsung/Downloads/쓸3.png` (`941×1672`, SHA-256 `54b8c69b828ad7a0e1905d051303e0ce803a36d37a3da17a3c3aafcde451b5d0`)을 runtime `public/assets/day1-time-ready-reference.png`로 무손실 복사함.
+- DAY1 Time의 `phase === ready`만 reference poster로 교체함. Start visible bounds `(90,1080,763,183)`을 `left 9.5643% / top 64.5933% / width 81.0840% / height 10.9450%` transparent button으로 연결함.
+- 기존 화면 계약에 cancel/back callback이 없으므로 PNG의 `검사 중단`은 artwork로만 유지하고 새 기능을 만들지 않음. Start는 기존 `assessment.startTrial`을 그대로 호출함.
+- Start 직후 READY poster/summary는 unmount되며 RUNNING의 timer, TimeInstrument, `지금!`, contamination 계약은 변경하지 않음.
+- Chrome QA 320/360/390/412/430/1280에서 horizontal overflow와 crop 0, reference comparison은 `artifacts/day1-time-ready-21.3.1/`에 저장함.
+- 전체 검증은 76 files / 410 tests, typecheck, lint, build:web, build:ait, build, `git diff --check` 통과.
+- Previous: **21.2 쓸능검 INTRO Reference Asset 적용 — 사용자 시각 승인 대기**
+- `/mnt/c/Users/jinsung/Downloads/쓸2.png` (`941×1672`, SHA-256 `bdc0a46671c632ec6aeaa34c4b72a19d819fefa9d3a645f8de9be1f2f10c50c6`)을 runtime `public/assets/intro-reference.png`로 무손실 복사함.
+- INTRO visible artwork는 reference PNG 한 장이며 Start/Back은 image-relative transparent button overlay, 의미 정보는 `sr-only` DOM으로 제공함.
+- Start visible bounds `(76,1427,785,110)`은 `left 8.0765% / top 85.3469% / width 83.4219% / height 6.5789%`, Back bounds `(77,1550,783,76)`은 `8.1828% / 92.7033% / 83.2094% / 4.5455%`로 반영함.
+- PNG 내부 텍스트는 system font scaling에 반응하지 않는 대신 핵심 카피와 실제 controls를 accessibility DOM으로 제공함. measurement/navigation/scoring/raw/storage/state 계약과 HOME 21.1.5는 변경하지 않음.
+- Chrome QA 360×800/412×786/430×932/1280×1200에서 horizontal overflow와 crop이 0이며 reference comparison은 `artifacts/intro-21.2/`에 저장함. 전체 검증은 76 files / 409 tests, typecheck, lint, build:web, build:ait, build, `git diff --check` 통과.
+- Previous: **21.1.5 쓸능검 HOME Reference Asset 교체 — 사용자 승인 대기**
+- `/mnt/c/Users/jinsung/Downloads/쓸1.png` (`941×1672`, SHA-256 `ed464d5e106cd13727c4588c46f53182f6c2c14b8003c5a6868b27003ee50d2b`)을 runtime `public/assets/home-reference.png`로 무손실 복사함.
+- 기존 하찮력 asset은 `public/assets/home-reference-hachannyeok.png`로 archive하고 runtime에서 참조하지 않음.
+- 새 asset CTA visible bounds `(87,1241,767,176)`을 `left 9.2455% / top 74.2225% / width 81.509% / height 10.5263%`로 반영함. secondary visible text bounds `(323,1457,289,31)`를 `34.3252% / 87.1411% / 30.712% / 1.8541%`로 반영하고 pseudo hit expansion으로 320px에서도 약 44px pointer area를 유지함.
+- Previous: **21.0 쓸능검 브랜드 리네이밍 완료**
+- 최종 사용자 노출 Brand는 `쓸능검`, Descriptor는 `쓸데없는 능력 정밀검사`, 내부 project codename/path는 `hachannyeok`으로 분리함.
+- HOME accessibility DOM, INTRO, Returning HOME, Basic/Final/Daily report, fictional certification seal, Basic/Final share message, HTML title의 사용자 노출 브랜드를 `쓸능검`으로 변경함.
+- `appName: hachannyeok`, package name, `hachannyeok.profile.v1`, deep link, schema/session/record/raw identity는 변경하지 않음. migration 없음.
+- HOME reference PNG에 박힌 기존 워드마크는 이번 텍스 계약 단계에서 덮어쓰거나 파괴하지 않음. 새 `쓸능검` HOME/INTRO PNG로 교체할 후속 asset task가 필요함.
+- Apps in Toss 콘솔의 실제 표시명은 repo의 internal `appName`과 별개로 수동 변경이 필요할 수 있음.
+- Previous: **21.1.4 HOME Reference Asset Composition — 사용자 승인 대기**
+- `/mnt/c/Users/jinsung/Downloads/메인.png`를 visual source of truth로 사용해 큰 워드마크/검사 번호 pill/2줄 hero statement/3.000 precision dial/3 spec cards/대형 CTA/secondary link/diagnostic boundary의 portrait poster composition으로 재구성함.
+- Home `onStart`, navigation, STATE A~F, storage/scoring/raw/progression/share/date unlock/safe-area/disabled 계약은 변경하지 않음.
+- Windows Chrome CDP device metrics로 360×800/390×844/412×786/430×932를 실제 검증하고 `artifacts/home-21.1.2/`에 360/412 캡처를 저장함. 사용자 시각 승인 전에는 INTRO로 넘어가지 않음.
+- 21.1.3에서 구조를 유지한 채 wordmark weight, hero line balance, dial axis/ring/tick opacity, 3.000 clear zone, spec card density, CTA grid/shadow, secondary alignment, 2-line diagnostic footer를 micro-polish함. 승인용 360/412/desktop/reference comparison은 `artifacts/home-21.1.3/`.
+- 21.1.4에서 원본 `메인.png`를 SHA-256 동일한 `public/assets/home-reference.png` HTML asset으로 복사하고, STATE A HOME의 visible artwork를 해당 poster image 하나로 교체함. CTA/secondary는 image-relative percentage transparent button overlay이고 의미 정보는 `sr-only` summary로 제공함.
+- HOME poster 텍스트는 이미지에 포함되어 system font scaling에 반응하지 않는 trade-off가 있음. reference fidelity를 우선하되 핵심 텍스트와 제어의 accessibility DOM을 별도 유지함. STATE B~F는 기존 `ReturningHome`으로 기능이 유지되며 후속 state asset 과제로 분리 가능.
+- 21.1.4 캡처와 reference comparison은 `artifacts/home-21.1.4/`.
+- 현재 단계: **20.3단계 Analysis Report Polish 완료**
+- 다음 단계: **20.4 전체 Product Visual/Interaction QA**
+- Basic/Final hero를 calibrated overall dial, profile statement, compact certification, 5 Ability scorecard 순서로 정리함.
+- DAY2~6은 동일한 daily report spacing, condition card header, delta와 secondary score 문법을 공유함.
+- sessionId + assessmentType + 전체 attempt index 기반 stable hash selector로 4종 decorative skin을 재현 가능하게 선택함.
+- Center 승인 shape, Balance orientation/A-B cut, Control movement tuple, Focus config 1→2→3, Memory A/B와 DAY7 exact config는 모두 기존 순서를 유지함.
+- 새 measurement geometry, raw/storage field, calibration/scoring 변경 없이 outline/ticks/frame/surface shell만 변형함.
+- DAY7은 interaction을 유지한 채 FINAL CALIBRATION masthead, 7일 분석 마지막 보정 문구, fictional mini seal과 공통 final frame을 적용함.
+- Basic/Final Analysis certification seal을 하찮력/PRECISION CERTIFIED/ㅎ의 concentric calibration seal로 공통화함.
+- Final Analysis 누적 evidence는 DAY별 label과 대표값을 항상 표시하고 disclosure를 펼치면 기존 raw-derived 전체 문장을 확인하도록 압축함.
+- warm ivory paper, deep navy, emerald instrument panel, muted mint/gold calibration accent 기반의 precision instrument visual system과 하찮력 전용 fictional certification/report visual을 전 화면에 적용함.
+- 360×800 mobile-first와 safe area를 유지하고 320/390/430 responsive boundary를 보강함. RUNNING measurement contamination 금지와 reduced-motion 정책을 유지함.
+- 새 dependency 없음. 기능/navigation/state machine, scoring/raw/storage 및 DAY1~7 protocol 변경 없음.
+- 전체 검증: typecheck, lint, 67 files / 386 tests, build:web, build:ait, build, `git diff --check` 통과. 실제 Chromium 360×800에서 warm ivory 배경, 56px CTA, 360px scroll width와 가로 overflow 없음 확인.
+- 18단계 독립 리뷰 Critical 0 / Major 5를 수정함: final memory timer와 Control RAF lifecycle, Focus double RAF·날짜 재검사, Balance crossing·runtime validation, Cross Insight 사용자 카피, DAY1~7 실제 누적 evidence. 직접 관련 Minor로 취급 주의사항, metric 설명, STATE E/F 카피도 보강함.
+- selector/scoring/calibration/raw/schema/storage architecture 및 DAY1~6 protocol 변경 없음.
 - `src/domain`에 문서의 calibration, math, raw union/runtime validation, completion, LocalDateKey/STATE, session/checkpoint, persisted schema/migration/idempotency/StoragePort 및 scoring engine 타입 경계를 구현함
 - Calibration/math/normalizer부터 baseline·daily·final score, stability, tendency, DAY 7 selector, profile, certification, final metric, Cross Insight, raw replay `deriveAnalysis`까지 구현함
 - 최초 사용자 홈/검사 안내, DAY 1의 Time → Center → Balance → Control → Focus 행동 검사와 raw 결과 orchestration/기본 분석 결과서를 구현함. Apps in Toss Storage adapter는 아직 구현하지 않음
@@ -106,6 +158,19 @@
 - validated persisted data 전제를 벗어나는 consumer에서 `dailyRecords` 물리 배열 순서를 신뢰하지 않도록 `analysisDay` 정렬 명시
 
 마지막 전체 검증: typecheck, lint, 9 files / 46 tests, build:web, build:ait, build 모두 통과했다.
+
+## 18단계 DAY7 Final Calibration 및 최종 분석서
+
+- 기존 `finalSelector`가 DAY1~6 evidence의 confidence tuple로 고른 Ability를 `finalTime/finalCenter/finalBalance/finalControl/finalFocus`에 1:1 연결함
+- DAY2 particle, DAY3 circle stimulus, DAY1 vertical Balance 초기값, DAY4 CONFIG_A, DAY5 movement/config, DAY1 Focus Config 2, DAY6 clustered B를 source of truth로 재사용함
+- 모든 final arm은 전체 attempt index로 sequence/retry identity를 선택하고 target+3 completion 및 attempt별 exact config boundary를 적용함
+- background attempt invalidation, DAY7 date-change draft 폐기, 마지막 attempt RESULT → 결과 보기 → COMPLETE 흐름을 구현함
+- `prepareFinalSave`와 기존 `StorageMutationCoordinator` 경로로 same-payload idempotency, 다른 final 충돌 보존, DAY1~6 evidence 보존을 적용함
+- 기존 final 80/20, preFinal 대비 ±6 cap, selected Ability-only 변경을 그대로 사용하며 DAILY V2 modifier는 final에 적용하지 않음
+- FinalRecord 저장 후 STATE F 및 reload를 지원하고 최종 Overall/Profile/5 Ability/대표 자격/final metrics/Cross Insight/fallback/강점·보완/evidence/진단 경계를 표시함
+- Share SDK는 integration gate 상태로 유지하고 최종 결과와 분리된 disabled 안내만 표시함
+- native 360×800 실제 기기와 Storage bridge 강제 종료/재실행 QA는 후속 TODO
+- 전체 검증: typecheck, lint, 66 files / 371 tests, build:web, build:ait, build, `git diff --check` 통과
 
 ## 9. 4단계 구현 결과
 
@@ -349,3 +414,217 @@
 - scoring/calibration, DAY 1 protocol, DAY 2 raw/Storage/schema/assessmentType은 변경하지 않음
 - 35ms/45ms/+10ms fixture, small-difference copy, score secondary hierarchy, 95→96 기존 scoring 불변과 보조 카피 회귀 테스트를 추가함
 - 전체 검증: typecheck, lint, 40 files / 252 tests, build:web, build:ait, build, `git diff --check` 통과
+
+## 27. 14단계 DAY 3 시각 유도 편향 추가 분석 구현
+
+- DAY 2 다음 유효 날짜를 DAY 3 Intro → plain/decoratedLeft/decoratedRight 중심 선택 → 결과로 연결함
+- stimulus ID와 attempt index 반복, 좌측 circle 5개/exact mirror geometry 및 exact center runtime invariant를 고정함
+- 기존 normalized Center coordinate helper, pointer 단일 입력, duplicate/background/date race 방지를 적용하고 DAY 3만 restart함
+- `analysisDay: 3` record를 기존 `prepareDailySave`/`StorageMutationCoordinator`로 append하고 실패 시 동일 payload를 retry함
+- baseline/DAY 2를 보존하고 `deriveAnalysis()`로 Center만 갱신하며 다른 네 Ability와 DAILY ±8 cap을 검증함
+- visual bias를 left/right/up/down/neutral 5-state로 분리하고 zero/axis tie neutral 및 eligible+neutral을 지원함
+- DAY 1 무장식 vs DAY 3 장식 비교, direction/magnitude/diagram을 primary로, Center score를 secondary로 표시함
+- 저장 후 심화 분석 2/5, 같은 날 STATE D, 다음 유효 날짜 DAY 4 placeholder와 rollback unlock 금지를 적용함
+- DAY 2 Minor 의미 label은 범위 확대를 피하기 위해 TODO로 유지함
+- Apps in Toss native Storage bridge 강제 종료/재실행 QA TODO를 유지함
+- 전체 검증: typecheck, lint, 45 files / 272 tests, build:web, build:ait, build, `git diff --check` 통과
+
+## 28. 14단계 독립 코드 리뷰 수정 및 종료
+
+- 독립 리뷰 결과 Critical 0건, Major 1건, Minor 1건을 확인함
+- Major였던 DAY 3 결과 diagram/legend marker mapping을 전용 semantic legend class로 수정함
+- diagram marker와 legend marker가 같은 CSS selector declaration을 공유해 baseline/day3/true-center 색상과 테두리 drift를 방지함
+- Minor였던 diagram 접근성을 `role="img"`와 DAY 1 평균, DAY 3 장식 평균, 실제 중심을 설명하는 accessible name으로 보강함
+- scoring, direction/magnitude, raw evidence, stimulus, Storage, DAY 1/2는 변경하지 않음
+- 전체 검증: typecheck, lint, 45 files / 273 tests, build:web, build:ait, build, `git diff --check` 통과
+- 14단계를 종료하고 DAY 3 실기 QA 진행 가능
+
+## 29. 15단계 DAY 4 다중 분배 성향 추가 분석 구현
+
+- DAY 3 다음 유효 날짜를 DAY 4 Intro → horizontal 3등분 2회 → 결과로 연결함
+- raw는 기존 `balanceThreeWay`와 `cutPositions`만 사용하고 condition/orientation/stimulusId/configId를 추가하지 않음. conditionMinimum 없음도 유지함
+- CONFIG_A `0.28/0.72`, CONFIG_B `0.38/0.62`를 전체 attempt index 기준 A/B로 반복하며 valid count와 `Math.random`을 사용하지 않음
+- single active pointer, 두 divider drag, crossing/열린 경계 차단, slider keyboard 조작과 confirm-only raw 생성 및 synchronous double-confirm guard를 구현함
+- RUNNING target guide/grid/snap/proximity feedback를 노출하지 않고 결과에서만 실제 평균 segment와 33.3% 기준을 비교함
+- background/date invalidation, retry 최대 5회, incomplete와 DAY 4 전체 restart를 기존 completion 계약으로 처리하며 DAY 1~3 기록을 유지함
+- `analysisDay: 4` record를 기존 `prepareDailySave`/`StorageMutationCoordinator`로 append하고 실패 시 동일 payload를 재저장함
+- 기존 `deriveAnalysis()`로 Balance만 갱신하고 terminal bias와 condition sensitivity 분리를 포함한 scoring 계약을 변경하지 않음
+- 결과는 3등분 분배 패턴을 primary, DAY 1 2등분 대비 오차를 비교 근거, Balance score를 secondary로 표시함
+- 저장 후 심화 분석 3/5, 같은 날 STATE D, 다음 유효 날짜 DAY 5 placeholder를 연결함. DAY 5 실제 검사는 구현하지 않음
+- Apps in Toss native Storage bridge 강제 종료/재실행 QA TODO를 유지함
+- 전체 검증: typecheck, lint, 51 files / 288 tests, build:web, build:ait, build, `git diff --check` 통과
+
+## 30. 15.5단계 DAY 4 결과 해석 UX 보정
+
+- scoring/raw/calibration/Storage를 변경하지 않고 DAY 4 presentation만 보정함
+- 전체 multiPartitionBias eligibility와 마지막 구간 방향 표시를 분리하고, `abs(terminalBias) / BALANCE_ERROR_WORST`에 기존 `TENDENCY_DISPLAY_THRESHOLD`를 적용함
+- terminal component가 기준 미만이면 sign만으로 크게/작게를 단정하지 않고 뚜렷한 한쪽 편향 없음 카피를 표시함
+- primary insight를 기존 Balance condition sensitivity 기준에 따른 DAY 1 2등분 대비 DAY 4 3등분 안정성으로 변경함
+- valid trial별 분배, 평균, 33.3% 기준을 함께 표시하고 기준 양쪽으로 흔들린 segment가 있으면 평균 상쇄 설명을 제공함
+- QA fixture의 Balance 93→88과 기존 수학 결과가 그대로임을 회귀 테스트로 고정함
+- 전체 검증: typecheck, lint, 52 files / 293 tests, build:web, build:ait, build, `git diff --check` 통과
+
+## 31. 16단계 DAY 5 surprise control degradation 추가 분석 구현
+
+- DAY 4 다음 유효 날짜를 DAY 5 Intro → predictable/surprise control 4회 → 결과로 연결함
+- left-to-right `0.08→0.92`와 네 exact config `.58/.32→.32/null`, `.58/.32→.50/.45`, `.68/.40→.40/null`, `.68/.40→.24/.50`를 전체 attempt index로 반복함
+- normalized transition time을 initial speed 기준 가상 전체 이동시간의 비율로 해석하고 monotonic clock 기반 piecewise movement를 raw/visual 공통 source로 사용함
+- exact end와 이후를 `insufficientObservation`으로 처리하고 stop/RAF/background/date race를 synchronous active guard로 단일 확정함
+- predictable은 동일 pre/post speed와 null change, surprise는 다른 speed와 열린 범위 change time을 runtime validator에서 강제함
+- 기존 completion의 target 4/minimum valid 3/condition별 최소 1/max 7과 retry sequence를 재사용함
+- `analysisDay: 5` DailyRecord를 기존 prepareDailySave/StorageMutationCoordinator로 append하고 실패 시 동일 payload를 재저장함
+- deriveAnalysis로 Control만 갱신하고 Time/Center/Balance/Focus와 DAY 1~4 raw record를 유지함
+- 결과 primary는 predictable/surprise 평균 정지 오차와 증감이며 Control score는 secondary, 심화 분석 4/5를 표시함
+- 같은 날 STATE D, 다음 유효 날짜 DAY 6 placeholder를 연결하고 DAY 6 실제 검사는 구현하지 않음
+- scoring/calibration/raw/Storage schema/dependency는 변경하지 않음
+- 전체 검증: typecheck, lint, 56 files / 310 tests, build:web, build:ait, build, `git diff --check` 통과
+
+## 32. 16단계 DAY 5 독립 코드 리뷰 수정 및 종료
+
+- 독립 리뷰 결과 Critical 0건, Major 2건, Minor 2건을 모두 수정함
+- DAY 5 exact config의 단일 domain tuple과 attempt-index validator를 추가하고 `day5_control_surprise` completion 경계에서 valid/invalid 모든 attempt의 exact sequence를 검사함
+- generic `ControlConditionTrial` validator는 다른 assessment/final 재사용을 위해 기존 predictable/surprise invariant 그대로 유지함
+- persisted DAY 5 payload는 기존 Storage schema의 `validateCompletion` 경로로 같은 exact config 검증을 거치며 불일치는 throw 없이 `corruptData`로 거부함. Storage schema 구조는 변경하지 않음
+- DAY 5 RAF chain에 generation과 trialId identity를 캡처해 stop/end/background/date change/unmount 뒤 전달된 stale callback이 다음 trial marker, raw, scheduler를 변경하지 못하게 함
+- surprise config 2/4의 transition 직전·exact·직후 연속성 회귀 테스트를 추가함
+- engine tendency eligibility가 false이면 nonzero raw delta도 `변화 거의 없음`으로 표시하며 새 threshold를 추가하지 않음
+- DAY 5 다음 placeholder가 DAY 6와 DAY 1~5 기록 유지를 명확히 안내하도록 수정함. DAY 6 assessment는 구현하지 않음
+- scoring/calibration, raw/Storage schema, DAY 1~4 protocol, dependency 변경 없음
+- 전체 검증: typecheck, lint, 56 files / 319 tests, build:web, build:ait, build, `git diff --check` 통과
+- DAY 5 실기 QA 진행 가능
+
+## 33. 16.6단계 DAILY Ability Scoring V2 의미 정합성 수정
+
+- DAY 2~5의 absolute daily equivalent 75/25 재측정을 제거하고 reference/challenge condition effect modifier로 전환함
+- `conditionEffect = clamp((referenceMeanError - challengeMeanError) / ABILITY_ERROR_WORST, -1, 1)`, `dailyDelta = round(effect * 8)`, `updatedAbility = clamp(DAY 1 baseline + delta, 0, 100)`을 적용함
+- DAY 2 plain/distracted, DAY 3 DAY3 plain/decorated, DAY 4 DAY1 two-way/DAY4 three-way, DAY 5 predictable/surprise mapping을 고정함
+- 현재 Ability에 누적하지 않고 항상 DAY 1 baseline을 기준으로 하며 DAILY consistency composer를 만들지 않음
+- DAY 5 CASE A/B/C는 94/94/91, QA 19%/19% fixture는 Control 94 유지로 고정함
+- `CALIBRATION_VERSION = 2`; Storage schemaVersion, raw schema/migration, mutation coordinator 변경 없음
+- DAY 1 normalizer/protocol, DAY 2~5 measurement protocol, DAY 7 80/20 및 ±6 공식 변경 없음
+- DAY 6 modifier는 실제 구현 전 확정하며 이번 단계에서 임의 공식을 추가하지 않음
+- 전체 검증: typecheck, lint, 57 files / 331 tests, build:web, build:ait, build, `git diff --check` 통과
+
+## 34. DAY 5 마지막 trial 결과 UX 수정
+
+- DAY 5의 모든 측정 attempt는 completion 여부와 무관하게 RUNNING 뒤 TRIAL RESULT를 표시하도록 UI phase 전환을 분리함
+- 첫 3회는 기존 `다음 측정`, retry 가능 invalid attempt는 기존 `다시 측정`, completion을 만족한 마지막 result는 `결과 보기` CTA를 사용함
+- 마지막 result에서 해당 trial의 목표 위치, 실제 정지 위치와 오차를 표시한 뒤 사용자 CTA 선택으로 COMPLETE에 진입함
+- completion이 attempt 5~7에서 성립하는 retry 흐름도 마지막 attempt RESULT 뒤 COMPLETE에 진입함
+- result CTA 중복 호출은 raw trial을 추가하지 않으며 마지막 저장 trial 수는 기존 계약대로 유지함
+- completion 판단, DAY 5 config, raw evidence, scoring/calibration, Storage는 변경하지 않음
+- 전체 검증: typecheck, lint, 57 files / 334 tests, build:web, build:ait, build, `git diff --check` 통과
+
+## 35. 17단계 DAY 6 순간 위치 기억 추가 분석 구현
+
+- Focus supporting evidence로 DAY 6 spatial memory를 구현했으며 여섯 번째 Ability는 추가하지 않음
+- spread A와 clustered B exact normalized 좌표를 attempt index A/B/A/B/A로 결정적으로 사용
+- 1200ms exposure → 300ms blank → 정답 없는 3-tap recall → 모든 attempt의 trial result 흐름 구현
+- generation guard와 monotonic response timer로 stale timer, background/date race, unmount cleanup 처리
+- 사용자 선택 순서를 raw로 보존하되 3! permutation minimum total Euclidean matching과 lexicographic tie-break로 결과 계산
+- DAY 6 completion boundary에서 exact config/retry identity를 검증하고 analysisDay 6 DailyRecord를 기존 Storage coordinator 경로로 저장
+- spread reference/clustered challenge의 V2 modifier를 DAY 1 Focus baseline에 적용하고 Time/Center/Balance/Control은 유지
+- 결과 primary는 spread/clustered 평균 위치 오차, Focus score는 secondary이며 심화 분석 5/5 표시
+- DAY 6 완료 당일 STATE D, 다음 유효 날짜 STATE E와 DAY 7 최종 보정 placeholder 연결
+- CALIBRATION_VERSION 2, raw/schema/migration/dependency 변경 없음
+- Apps in Toss native Storage 강제 종료/재실행 QA TODO 유지
+- 전체 검증: typecheck, lint, 61 files / 353 tests, build:web, build:ait, build, `git diff --check` 통과
+
+## 36. 17단계 DAY 6 독립 코드 리뷰 수정 및 종료
+
+- 독립 리뷰 결과 Critical 0건, Major 1건, Minor 1건을 확인하고 수정함
+- invalid retry 뒤에도 원본 전체 attempt index를 보존해 spread A와 clustered B 결과 집계가 뒤집히지 않도록 수정함
+- config의 공통 `isDay6SpreadAttempt` helper를 presentation, Focus modifier와 tendency에서 재사용해 condition identity를 정렬함
+- invalid A → valid B → valid A fixture로 2%/8% 비교, primary headline, Focus 방향과 다른 네 Ability 불변을 검증함
+- DAY 6 결과 화면 전용 테스트를 추가하고 정상 A/B, score secondary와 심화 분석 5/5를 고정함
+- SCORING_SPEC의 옛 absolute spatialMemoryQuality tendency를 spread/clustered V2 error difference 계약으로 정리함
+- blank background와 stale blank callback 테스트에서 발견된 optional `responseTimeMs: undefined` raw key를 생략해 invalid attempt가 정상 retry되도록 수정함
+- scoring/calibration/raw schema/Storage와 DAY 1~5 protocol은 변경하지 않음
+- 전체 검증: typecheck, lint, 62 files / 357 tests, build:web, build:ait, build, `git diff --check` 모두 통과
+
+## 37. 20.1단계 Assessment Visual Identity Upgrade
+
+- 공통 paper shell/header/progress/CTA/safe area와 ivory/navy/emerald 체계는 유지하고 READY hero만 검사별 장비로 분리함
+- `AssessmentInstruments.tsx`에 Time/Center/Balance/Control/Focus/Memory 순수 장식 컴포넌트와 공통 ready content를 추가함
+- Time은 3.000 REFERENCE stopwatch dial, RUNNING empty dial, RESULT calibrated target/actual scale을 사용함
+- Center는 정답점 없는 optical frame, Balance는 partition rail/handle, Control은 movement rail/ticks, Focus는 실제 stimulus와 무관한 neutral matrix를 사용함
+- Memory는 실제 spread A/clustered B와 다른 dummy constellation만 READY에 사용하며 exposure/blank/recall protocol은 유지함
+- DAY 7 READY는 FINAL CALIBRATION masthead와 selector가 고른 ability의 동일 instrument identity를 함께 사용함
+- measurement geometry/config/raw/scoring/storage/navigation/state machine은 변경하지 않음
+- contamination test와 320/390px 및 낮은 화면 responsive boundary를 추가함
+
+## 38. 20.2단계 Safe Deterministic Stimulus Variation
+
+- dependency 없는 FNV-1a 기반 `selectDeterministicVariant`를 추가하고 invalid count/index를 명시적으로 거부함
+- 동일 session/assessment/attempt는 같은 0..3 skin, retry는 valid count가 아닌 전체 attempt index의 다음 skin을 사용함
+- DAY1/DAY3 Center는 approved/exact stimulus geometry를 유지하고 outer frame만 변형함
+- DAY1/DAY4 Balance는 orientation/config/cut을 유지하고 shell/outline만, DAY1/DAY5 Control은 exact movement tuple을 유지하고 rail tick/frame만 변형함
+- Focus는 calibration-equivalence 문서 근거가 없어 session config offset을 적용하지 않고 1→2→3 순서와 identical item style을 유지함
+- DAY6 Memory는 A/B/A/B/A와 exposure 1200ms/blank 300ms/recall ghost 금지를 유지하고 panel/result line shell만 변형함
+- DAY7은 exact config와 FINAL frame을 유지하며 선택 arm의 decorative skin만 적용함
+- visual variant는 raw/storage/debug analytics에 저장하지 않으며 completed-assessment checkpoint 계약에 영향을 주지 않음
+- Chromium 실행 파일은 확인했으나 자동 화면 상태 fixture가 없어 요청된 360×800 attempt matrix 캡처는 native/manual visual QA 대상으로 남김
+- 전체 검증: typecheck, lint, 69 files / 396 tests, build:web, build:ait, build, `git diff --check` 통과
+
+## 39. 20.3단계 Analysis Report Polish
+
+- Basic/Final hero에 실제 `DerivedAnalysis.scores` 5개를 그대로 표시하는 compact summary를 추가하고 profile high/low만 강점/보완 marker로 사용함
+- overall dial의 calibrated ring/minor-major reference와 profile statement hierarchy를 정리함
+- fictional certification seal은 유지하고 label/name/supporting copy를 별도 wrapper에 배치해 320~430px 긴 자격명 wrapping과 seal 겹침을 방지함
+- Basic raw evidence는 기존 `summarizeDay1Evidence` 문자열을 primary/secondary report row로 분리 표시하며 수치 계산은 추가하지 않음
+- Basic Manual은 기존 강점/보완/취급 주의 카피를 STRENGTH/WATCH/CAUTION 문서 행으로 정리함
+- DAY2~6은 공통 daily report spacing, condition A/B header, delta, secondary Ability card 시각 문법을 적용함
+- Final은 `FINAL REPORT / 7 / 7 COMPLETE`, compact abilities, 3개 final metric certificate cells, analysis-note Cross Insight, compact evidence disclosure와 action hierarchy를 적용함
+- details/summary, heading, disabled share, seal `aria-hidden` 의미는 유지함
+- scoring/calibration/profile/certification/Cross Insight/raw/storage/navigation/state machine은 변경하지 않음
+- 360×800 screenshot matrix는 assessment/report fixture route가 없어 20.4 native/manual QA 대상으로 유지함
+- 전체 검증: typecheck, lint, 69 files / 396 tests, build:web, build:ait, build, `git diff --check` 통과
+
+## 40. 20.5단계 Release Visual Fix
+
+- Basic/Final 공통 certification hero를 absolute seal 배치에서 seal 전용 responsive grid column으로 전환함
+- seal은 320/360/390/430에서 hero 내부에 유지되며 원주 문구·mark 크기를 container 폭에 맞춰 축소하고 fictional seal `aria-hidden`을 유지함
+- 긴 certification name은 `min-width: 0`과 `word-break: keep-all`로 본문 column 안에서 wrapping하며 seal과 겹치지 않음
+- Final evidence summary의 title/value를 별도 flex node로 분리하고 대표값 tabular-nums와 native details/summary semantics를 유지함
+- 360/390/430은 의미 선두를 보존하는 title ellipsis 단일 행, 320은 안전한 2행 구조로 표시하며 title/value overlap은 0임
+- DAY 3 true center/DAY 1 average/DAY 3 average는 실제 좌표를 offset하지 않고 fill/stroke/dashed concentric ring/z-index로 구분함
+- Final Calibration heading은 keep-all responsive heading으로 마지막 음절 orphan을 제거하고 DAY 5 condition header도 keep-all/small type으로 정리함
+- Final report section/card 반복 여백을 줄여 360px fixture 높이를 약 2841px로 정리함
+- scoring/calibration/raw/storage/schema/selector/config/measurement/timing/result/evidence/share state는 변경하지 않음
+- Chromium 360×800 필수 7장과 320/390/430 추가 폭을 확인했으며 모든 장면에서 horizontal overflow 없음
+- 전체 검증: typecheck, lint, 70 files / 398 tests, build:web, build:ait, build, `git diff --check` 통과
+- 다음 작업: Share Integration + Apps in Toss Native QA
+
+## 41. 21단계 Apps in Toss Share Integration
+
+- 설치된 `@apps-in-toss/web-framework@3.0.2` 타입에서 `share({message})`, `getTossShareLink(path, ogImageUrl?)`와 최신 `Share.sendMessage`/`Share.createLink` 지원을 직접 확인함
+- UI의 SDK 직접 호출을 제거하기 위해 최소 `SharePort`, `createAppsInTossShare`, Basic/Final share message builder를 `src/infrastructure/share/`에 추가함
+- production adapter는 최신 `Share.sendMessage({message})`를 사용하며 Chromium용 `navigator.share`/local fallback은 추가하지 않음
+- 저장소에 출시 전 private test scheme/deploymentId 계약이 없으므로 기본 adapter는 message-only로 구성하고 임의 deep link를 생성하지 않음
+- `createAppsInTossShare({deepLink})`로 test 또는 production deep link를 명시적으로 주입할 수 있으며, 이때 `Share.createLink` 성공 결과만 메시지에 포함함
+- link 생성 실패는 silent message fallback 없이 share 전체 error로 전달함. public OG asset이 없어 OG URL은 추가하지 않음
+- Basic 메시지는 기본 분석/overall/profile display/representative certification display만, Final은 최종 분석/7일 완료/overall/profile/certification만 포함함
+- 메시지는 동일 DerivedAnalysis에 대해 결정적이며 sessionId/recordId/localDateKey/raw/timestamp/engine/content/storage key를 포함하지 않음
+- Basic/Final CTA를 활성화하고 idle/sharing/error 상태, synchronous double-click guard, sharing disabled, rejection 재시도와 결과 화면 유지를 구현함
+- share Promise resolve는 전송 완료로 표현하지 않고 성공 toast를 표시하지 않음
+- 공유 전후 Storage root 불변을 App final flow에서 검증함
+- scoring/measurement/raw/storage/schema/navigation/progression/FinalRecord/STATE F/reload는 변경하지 않음
+- Native QA TODO: Toss Sandbox Basic/Final share sheet, Android/iOS, 실제 메시지, private test link 클릭과 앱 진입, 취소/재시도, Storage root 불변
+- 전체 검증: typecheck, lint, 73 files / 406 tests, build:web, build:ait, build, `git diff --check` 통과
+- 다음 작업: 22단계 Apps in Toss Native QA
+
+## 42. 20.6단계 Final Art Direction Pass
+
+- Home의 공통 dial을 시간·중심·균형·통제·집중 5축을 읽을 수 있는 branded scan instrument로 교체하고 기존 hero/CTA 구조는 유지함
+- Time 숫자 중앙에 paper clear zone을 확보해 calibration tick을 outer ring으로 한정하고 RUNNING empty dial에는 countdown/progress를 추가하지 않음
+- Center optical frame과 실제 input surface의 depth/stroke를 분리하고 center cue는 추가하지 않음
+- Balance tick 밀도를 낮추고 divider rail/handle을 정리했으며 RUNNING target guide는 없음
+- Control rail의 start/end cap과 tick hierarchy를 정리하고 proximity feedback은 추가하지 않음
+- Focus READY dummy matrix와 RUNNING grid의 surface family만 연결하고 실제 target preview/정답 강조는 추가하지 않음
+- DAY3 동일 좌표 marker를 offset 없이 dash/fill/concentric ring/z-index로 구분하고 legend mapping을 유지함
+- DAY5 360px condition header, DAY6 result matching line, Final Calibration heading wrapping을 polish함
+- Basic/Final report hero와 technical chapter divider/document rhythm을 통일하고 evidence details/summary 의미는 유지함
+- 320/360/390/430 Chromium QA에서 horizontal overflow, certification seal overflow, evidence title/value overlap이 모두 0임
+- scoring/measurement/raw/storage/schema/navigation/state/CTA/protocol/contamination contract는 변경하지 않음
+- Current: 20.6 Final Art Direction Pass 완료
+- Next: Apps in Toss Native QA
