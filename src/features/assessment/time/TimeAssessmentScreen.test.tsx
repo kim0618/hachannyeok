@@ -4,14 +4,49 @@ import { TimeAssessmentScreen } from './TimeAssessmentScreen';
 import { describeTimeError } from './formatTimeResult';
 
 describe('TimeAssessmentScreen', () => {
-  it('3180ms는 3.18초와 0.18초 늦음으로 표시한다', () => {
+  it('3180ms는 3자리 기록과 signed delta, late 방향으로 표시한다', () => {
     let now = 0;
     render(<TimeAssessmentScreen onComplete={() => undefined} clock={{ now: () => now }} createTrialId={() => 'one'} />);
     fireEvent.click(screen.getByRole('button', { name: '측정 시작' }));
     now = 3180;
     fireEvent.click(screen.getByRole('button', { name: '지금!' }));
-    expect(screen.getByRole('heading', { name: '3.18초' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '3.180초' })).toBeInTheDocument();
+    expect(screen.getByText('+0.180초')).toBeInTheDocument();
+    expect(screen.getAllByText('조금 길었어요')).toHaveLength(2);
     expect(screen.getByText('목표보다 0.18초 늦었습니다.')).toBeInTheDocument();
+  });
+
+  it.each([
+    { duration: 3041, value: '3.041초', delta: '+0.041초', direction: '조금 길었어요', markerSide: '51.025%' },
+    { duration: 2959, value: '2.959초', delta: '-0.041초', direction: '조금 빨랐어요', markerSide: '48.975%' },
+    { duration: 3000, value: '3.000초', delta: '0.000초', direction: '정확했어요', markerSide: '50%' },
+  ])('$duration ms RESULT는 precise data와 marker 방향을 일치시킨다', ({ duration, value, delta, direction, markerSide }) => {
+    let now = 0;
+    const { container } = render(<TimeAssessmentScreen onComplete={() => undefined} clock={{ now: () => now }} createTrialId={() => String(duration)} />);
+    fireEvent.click(screen.getByRole('button', { name: '측정 시작' }));
+    now = duration;
+    fireEvent.click(screen.getByRole('button', { name: '지금!' }));
+
+    expect(screen.getByRole('heading', { name: value })).toBeInTheDocument();
+    expect(screen.getByText(delta)).toBeInTheDocument();
+    expect(screen.getAllByText(direction)).toHaveLength(2);
+    expect(screen.getByText(`목표 (3.000초)`)).toBeInTheDocument();
+    expect(screen.getByText(`실제 (${value})`)).toBeInTheDocument();
+    expect(container.querySelector('.time-result-instrument')).toHaveStyle(`--actual-marker-position: ${markerSide}`);
+    expect(screen.getByRole('button', { name: '다음 측정' })).toBeInTheDocument();
+  });
+
+  it('다음 측정 CTA를 연속 클릭해도 active trial은 하나만 시작한다', () => {
+    let now = 0;
+    const createTrialId = vi.fn(() => `trial-${createTrialId.mock.calls.length}`);
+    render(<TimeAssessmentScreen onComplete={() => undefined} clock={{ now: () => now }} createTrialId={createTrialId} />);
+    fireEvent.click(screen.getByRole('button', { name: '측정 시작' }));
+    now = 3041;
+    fireEvent.click(screen.getByRole('button', { name: '지금!' }));
+    const next = screen.getByRole('button', { name: '다음 측정' });
+    fireEvent.click(next);
+    fireEvent.click(next);
+    expect(createTrialId).toHaveBeenCalledTimes(2);
   });
 
   it('2840ms는 2.84초와 0.16초 빠름으로 표시한다', () => {
@@ -61,5 +96,16 @@ describe('TimeAssessmentScreen', () => {
     expect(container.querySelector('.time-ready-accessible-summary')).not.toBeInTheDocument();
     expect(screen.queryByText('3.000')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: '지금!' })).toBeInTheDocument();
+  });
+
+  it('RUNNING 화면은 정답 힌트 없이 확정 시안 문구와 정적 계측기를 표시한다', () => {
+    const { container } = render(<TimeAssessmentScreen onComplete={() => undefined} createTrialId={() => 'running'} />);
+    fireEvent.click(screen.getByRole('button', { name: '측정 시작' }));
+
+    expect(container.querySelector('.time-running-instrument')).toHaveAttribute('aria-hidden', 'true');
+    expect(screen.getByText('3초라고 느껴질 때')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '지금!' })).toBeInTheDocument();
+    expect(screen.getByText(/정확히 3초가 지났다고 느껴지는 순간/)).toBeInTheDocument();
+    expect(screen.queryByText(/3\.000|남음|지남/)).not.toBeInTheDocument();
   });
 });

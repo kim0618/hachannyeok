@@ -1,10 +1,11 @@
 import type { ReactNode } from 'react';
+import { timeResultMarkerPosition } from './time/timeResultMarker';
 
 interface InstrumentProps { className?: string; children?: ReactNode }
 const Frame = ({ className = '', children }: InstrumentProps) => <div className={`assessment-instrument ${className}`.trim()} aria-hidden="true">{children}</div>;
 
 export function TimeInstrument({ mode = 'ready', actualMs }: { mode?: 'ready' | 'running' | 'result'; actualMs?: number }) {
-  const actualPosition = Math.max(6, Math.min(94, 50 + ((actualMs ?? 3000) - 3000) / 40));
+  const actualPosition = timeResultMarkerPosition(actualMs ?? 3000);
   return <Frame className={`time-instrument time-instrument-${mode}`}><div className="time-crown"><i /><i /></div><div className="time-dial">{mode !== 'running' && <><strong>3.000</strong><span>{mode === 'ready' ? 'REFERENCE' : 'TARGET'}</span></>}</div>{mode === 'result' && <div className="time-scale"><i className="time-target-tick" /><i className="time-actual-tick" style={{ left: `${actualPosition}%` }} /></div>}</Frame>;
 }
 

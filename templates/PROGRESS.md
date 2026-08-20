@@ -2,10 +2,176 @@
 
 ## 현재 단계
 
-- 단계 번호: 21.3.1-FIX
-- 단계 이름: Time READY 화면 중복 단계 제거
+- 단계 번호: 21.8
+- 단계 이름: DAY1 Full Visual Flow QA + Basic Analysis 재평가
 - 상태: 완료
-- 다음: 21.3.2 Time RUNNING Visual Reconstruction
+- 다음: DAY2 디자인 재구성
+
+## 21.8 QA 판정
+
+- 최종 판정: **A. DAY1 전체 Visual 승인** → DAY2 디자인 재구성 진행
+- product code 수정 없음; Vite + Windows Chrome production navigation으로 HOME→Basic Analysis 실제 통과
+- 360×800/412×786 각 20개 순서 캡처 + Control later marker; measurement screen overflow 0/document height=viewport
+- Basic Analysis scrollHeight 360=2475, 412=2448, 320=2637, 390=2433, 430=2448; 모든 폭 overflow 0
+- Art direction 5점: 브랜드 4.8 / 계측기 4.7 / 연결감 4.6 / 고유성 4.6 / fidelity 4.7 / typography 4.5 / spacing 4.4 / CTA 4.7 / decoration 4.7 / 완성도 4.7
+- Basic Analysis 5점: 첫인상 4.7 / 보상감 4.7 / fidelity 4.5 / hierarchy 4.7 / certification 4.8 / Ability 4.7 / evidence 4.5 / share 4.4 / 완성도 4.7
+- contamination: Time/Center/Balance/Control/Focus 정답·시간·proximity cue 없음, 기존 회귀 통과
+- Critical 0 / Major 0 / Minor 2: Control exact RESULT rail label 밀집, Time READY `검사 1/5`→RUNNING `1/3` progress 문법 차이
+- 아티팩트: `artifacts/day1-full-flow-21.8/`
+- typecheck, lint, 76 files / 444 tests, build:web, build:ait, build, `git diff --check` 통과
+
+## 21.7.3 검증
+
+- `h-17.png` 기준 valid Focus 개별 RESULT completion/result/reaction metric/actual evidence grid/legend/note/CTA 적용, invalid retry 유지
+- result grid는 방금 trial의 `activeConfig.items` row-major order를 재사용; selected=`selectedTargetId`, target=`correctTargetId` item identity 직접 mapping
+- 기존 `lastTrial.correct` 판정 유지, raw `reactionTimeMs`를 presentation에서만 3자리 format: 842ms=0.842초, 1004ms=1.004초
+- correct는 동일 item에 selected solid/target dashed ring+badge 중첩, incorrect는 서로 다른 실제 item에 표시; 복제/좌표 변형 없음
+- color-only 구분을 피해 ring style, badge, legend 제공; result items 12개 read-only/focusable 0
+- RUNNING result/selected/target/reaction/legend contamination 없음; non-final/final/duplicate/invalid/double RAF/clock/raw/scoring/storage/navigation 계약 변경 없음
+- Chrome correct/incorrect 320/360/390/412/430 overflow 0, document height=viewport, metric/grid/badge/legend/note/CTA crop 없음
+- 캡처와 재현 스크립트: `artifacts/day1-focus-result-21.7.3/`
+- 76 files / 444 tests, typecheck, lint, build:web, build:ait, build, `git diff --check` 통과
+
+## 21.7.2 검증
+
+- `h-16.png` 기준 Focus RUNNING progress/heading/target cue/actual search field/technical frame/info/static emerald strip 적용
+- actual `activeConfig.items.map` 유지: Config 1/2/3 target circle index 2, triangle index 8, diamond index 11과 row-major DOM/item identity 불변
+- 12개 button은 동일 `.focus-item` class/computed style/hover/focus/disabled rule; target-only class/color/stroke/background/shadow/glow/animation 없음
+- decoration은 actual grid와 DOM 분리, `aria-hidden`/pointer-events none. 하단 strip은 DIV/pointer-events none이며 confirm CTA 없음
+- elapsed/ms/seconds/countdown/progress feedback 없음; pending→first RAF→second RAF interactive/reaction clock과 stale/duplicate/background/date 계약 유지
+- config/raw/responseTimeMs/completion/scoring/storage/navigation/state machine/dependency 변경 없음
+- Chrome 320/360/390/412/430 overflow 0, document height=viewport, min touch area 49.34×44px(320), matrix/frame/info/strip crop 없음
+- Config 1/2/3 캡처와 재현 스크립트: `artifacts/day1-focus-running-21.7.2/`
+- 76 files / 442 tests, typecheck, lint, build:web, build:ait, build, `git diff --check` 통과
+
+## 21.7.1 검증
+
+- `h-15.png` 기준 기존 Focus READY 하나를 progress/heading/static 3×4 dummy matrix/example/info/CTA로 교체
+- dummy 12개는 로컬 고정 배열로 실제 Focus config/stimulus/target/random/session/attempt와 분리, 동일 강도로 target cue 없음
+- preview `aria-hidden`, pointer-events none, focusable 0, actual `.focus-grid` 0; click/pointer로 RAF/clock/trial/raw 미생성
+- `측정 시작`은 기존 `assessment.startTrial` 직접 호출; READY unmount 후 pending→first RAF→second RAF interactive/clock-start 계약 유지
+- config/raw/scoring/storage/navigation/state machine 변경 없음, reaction-time contamination 회귀 없음
+- Chrome 320/360/390/412/430 overflow 0, preview/matrix/info/CTA crop 없음
+- 캡처와 재현 스크립: `artifacts/day1-focus-ready-21.7.1/`
+- 76 files / 441 tests, typecheck, lint, build:web, build:ait, build, `git diff --check` 통과
+
+## 21.6.3 검증
+
+- `h-14.png` 기준 valid Control 개별 RESULT metric/START·TARGET·ACTUAL rail/distance/legend/value card/note/CTA 적용
+- 기존 `controlPositionError`와 raw signed delta 재사용, 위치/오차 presentation만 one-decimal percent
+- START=attempt config, TARGET=raw target, ACTUAL=raw observed; clamp/display scale 없음
+- distance=min(target,actual)+absolute difference; 근접/exact label만 stagger하고 marker 좌표 불변
+- 40/.417 overshoot, 40/.383 undershoot, 40/.40 exact copy/좌표/overlap 회귀 검증
+- non-final 다음 측정/final COMPLETE/invalid retry/RAF/clock/stop/scoring/raw/storage/navigation 변경 없음
+- RUNNING result contamination 없음; Chrome 320/360/390/412/430 overflow 0 및 전체 요소 crop 없음
+- 캡처와 재현 스크립트: `artifacts/day1-control-result-21.6.3/`
+- 76 files / 439 tests, typecheck, lint, build:web, build:ait, build, `git diff --check` 통과
+
+## 21.6.2 검증
+
+- `h-13.png` 기준 Control RUNNING progress/instruction/live movement instrument/info/stop CTA 적용
+- actual marker는 기존 `assessment.markerPosition*100%`, START/TARGET은 active config 8%/40% 직접 mapping
+- CSS animation/별도 visual state/progress trail/END marker 없음
+- controlled clock에서 500ms=24%, 850ms=35.2%; target 접근에도 marker class/style 동일
+- `지금 멈추기`는 기존 stopTrial 직접 호출; clock 재계산/exact-end/stale RAF/background/date/duplicate 계약 변경 없음
+- percentage/time/speed/distance/error/result/proximity cue 없음, decoration aria-hidden/pointer-events none
+- Chrome 320/360/390/412/430 500ms 및 360/412 850ms overflow 0, field/labels/info/CTA crop 없음
+- 캡처와 재현 스크립트: `artifacts/day1-control-running-21.6.2/`
+- 76 files / 436 tests, typecheck, lint, build:web, build:ait, build, `git diff --check` 통과
+
+## 21.6.1 검증
+
+- `h-12.png` 기준 기존 Control READY 하나를 progress/heading/static movement rail/START·TARGET/info/CTA 구조로 교체
+- preview는 실제 `.control-track`과 분리된 `aria-hidden`, pointer-events none 정적 장식; RAF/trial/raw 시작 없음
+- 실제 `PrimaryButton`/`assessment.startTrial` 유지, Start 후 READY unmount와 동시에 기존 clock/RAF 시작
+- 첫 실제 config start 0.08/target 0.40 및 end/speed/attempt/RAF/stop/completion/scoring/raw/storage/navigation 계약 변경 없음
+- RUNNING proximity/countdown/speed/distance/자동정지 cue 추가 없음
+- Chrome 320/360/390/412/430 overflow 0, rail/labels/info/CTA crop 없음, READY 1개·actual track 0개
+- 캡처와 재현 스크립트: `artifacts/day1-control-ready-21.6.1/`
+- 76 files / 435 tests, typecheck, lint, build:web, build:ait, build, `git diff --check` 통과
+
+## 21.5.3 검증
+
+- `h-11.png` 기준 valid Balance 개별 RESULT metric/comparison instrument/legend/note/CTA 적용
+- 기존 `balanceError` 재사용, presentation에서만 error×100 one-decimal percent formatting
+- vertical actual/target=`left`, horizontal actual/target=`top`; distance는 두 raw 좌표 사이만 연결, clamp/scale 없음
+- actual solid emerald / target dashed blue 및 semantic legend 제공, exact 0.5 overlap 검증
+- 순수 `BalanceResultInstrument`로 양 orientation raw mapping 검증, RUNNING target/error 역노출 없음
+- non-final 다음 측정/final COMPLETE/retry/measurement/scoring/raw/storage/navigation 계약 변경 없음
+- Chrome vertical/horizontal 360×800·412×786 overflow 0, metric/field/legend/note/CTA crop 없음
+- 캡처와 재현 스크립트: `artifacts/day1-balance-result-21.5.3/`
+- 76 files / 433 tests, typecheck, lint, build:web, build:ait, build, `git diff --check` 통과
+
+## 21.5.2 검증
+
+- `h-10.png` 기준 Balance RUNNING progress/heading/actual partition instrument/calibration/info/CTA 적용
+- 실제 `.balance-area` rect와 기존 `assessment.dividerRatio`를 visual rail/handle의 단일 source로 유지
+- vertical 0.32=`left:32%`, horizontal 0.68=`top:68%`; orientation sequence/config 변경 없음
+- pointer/keyboard/boundary/confirm/duplicate/completion/scoring/raw/storage/navigation 계약 변경 없음
+- RUNNING `50%` text·target guide·center/proximity/result cue 없음, decoration `aria-hidden`/pointer-events none
+- Chrome 320/360/390/412/430 vertical 및 360/412 horizontal overflow 0, field/info/CTA crop 없음
+- 캡처와 재현 스크립트: `artifacts/day1-balance-running-21.5.2/`
+- 76 files / 429 tests, typecheck, lint, build:web, build:ait, build, `git diff --check` 통과
+
+## 21.5.1 검증
+
+- `h-9.png` 기준 기존 Balance READY 하나를 progress/heading/partition preview/info/CTA 구조로 교체
+- preview는 `aria-hidden`, `pointer-events:none`, slider 0개이며 divider는 정답 50%가 아닌 43%에 고정
+- 실제 `PrimaryButton`/`assessment.startTrial` 유지, Start 1회 후 READY 전체 unmount 및 기존 RUNNING 직접 진입
+- orientation/initial position(0.32/0.68), divider interaction, completion/scoring/raw/storage/navigation 계약 변경 없음
+- Chrome 320/360/390/412/430 horizontal overflow 0, preview/info/CTA crop 없음
+- 캡처와 재현 스크립트: `artifacts/day1-balance-ready-21.5.1/`
+- 76 files / 427 tests, typecheck, lint, build:web, build:ait, build, `git diff --check` 통과
+
+## 21.4.3 검증
+
+- `h-8.png` 기준 Center valid Trial RESULT의 metric/optical evidence/legend/note/CTA 적용
+- 기존 `centerDistanceError` + 1자리 percent formatter 재사용, raw 변경 없음
+- selected=`observed * 100%`, target=`trial.target * 100%`, SVG line도 동일 좌표 사용; clamp/별도 scale 없음
+- exact center marker/line overlap, left/right/up/down raw-coordinate fixture 검증
+- RESULT에만 grid/marker/line 표시, RUNNING contamination 회귀 없음
+- Chrome 320/360/390/412/430 overflow 0, field/metric/legend/note/CTA crop 없음
+- 캡처와 재현 스크립트: `artifacts/day1-center-result-21.4.3/`
+- 76 files / 425 tests, typecheck, lint, build:web, build:ait, build, `git diff --check` 통과
+
+## 21.4.2 검증
+
+- `h-7.png` 기준 Center RUNNING의 progress/instruction/actual optical field/external calibration/info panel 적용
+- 실제 `.center-shape`와 `event.currentTarget.getBoundingClientRect()` source 유지
+- 장식은 `aria-hidden`, `pointer-events:none`; input 내부 center dot/crosshair/50% guide/target/marker 없음
+- one pointerDown immediate RESULT, duplicate guard, rectangle/wideRectangle/square config와 coordinate/raw/scoring/storage 계약 변경 없음
+- Chrome 320/360/390/412/430 horizontal overflow 0, input/info crop 없음, RUNNING marker selector 0
+- 캡처와 재현 스크립트: `artifacts/day1-center-running-21.4.2/`
+- 76 files / 419 tests, typecheck, lint, build:web, build:ait, build, `git diff --check` 통과
+
+## 21.4.1 검증
+
+- `h-6.png` 기준 기존 Center READY 하나를 progress/heading/empty optical field/info/CTA 구조로 교체
+- preview는 `aria-hidden`, non-interactive이며 중앙점/crosshair/50% guide/target marker 없음
+- 실제 `PrimaryButton`/`assessment.startTrial` 유지, Start 후 READY 전체 unmount 및 기존 RUNNING 직접 진입
+- Center coordinate/no-clamp/rejection/duplicate/shape/target/completion/scoring/raw/storage 계약 변경 없음
+- Chrome 320/360/390/412/430 horizontal overflow 0, optical/info/CTA crop 없음
+- 캡처와 재현 스크립트: `artifacts/day1-center-ready-21.4.1/`
+- 76 files / 418 tests, typecheck, lint, build:web, build:ait, build, `git diff --check` 통과
+
+## 21.3.3 검증
+
+- `h-5.png` 기준 DAY1 Time 개별 RESULT의 실제 기록, signed delta, comparison dial, legend, note, CTA 적용
+- observed/target raw에서 3자리 초 표시와 late/early/exact copy 파생
+- 기존 marker scale을 공용 helper로 추출: positive=오른쪽, negative=왼쪽, exact=겹침
+- 실제 `PrimaryButton`/retry/completion flow 및 timing/raw/scoring/storage/navigation/contamination 계약 유지
+- Chrome 360×800/412×786 horizontal overflow 0, value/dial/legend/note/CTA crop 없음
+- 캡처와 재현 스크립트: `artifacts/day1-time-result-21.3.3/`
+- 76 files / 416 tests, typecheck, lint, build:web, build:ait, build, `git diff --check` 통과
+
+## 21.3.2 검증
+
+- `h-4.png` 기준 DAY1 Time RUNNING의 progress pill, static precision dial, poster copy hierarchy, emerald CTA 적용
+- 실제 `PrimaryButton`/`assessment.completeTrial` 및 timing/raw/scoring/storage/navigation/contamination 계약 유지
+- 시간 수치, countdown, 진행 animation, proximity cue 없음
+- Chrome 360×800/412×786 horizontal overflow 0, CTA/instrument crop 없음
+- 캡처와 재현 스크립트: `artifacts/day1-time-running-21.3.2/`
+- 76 files / 412 tests, typecheck, lint, build:web, build:ait, build, `git diff --check` 통과
 
 ## 21.3.1-FIX 검증
 

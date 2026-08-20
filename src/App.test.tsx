@@ -77,7 +77,7 @@ describe('최초 사용자 진입 흐름', () => {
     }
     fireEvent.click(screen.getByRole('button', { name: '다음 측정' }));
     for (let trial = 0; trial < 3; trial += 1) {
-      fireEvent.click(screen.getByRole('button', { name: trial === 0 ? '시작하기' : '다음 도형' }));
+      fireEvent.click(screen.getByRole('button', { name: trial === 0 ? '측정 시작' : '다음 도형' }));
       const area = screen.getByRole('application');
       Object.defineProperty(area, 'getBoundingClientRect', { configurable: true, value: () => ({ left: 0, top: 0, width: 100, height: 100 }) });
       fireEvent.pointerDown(area, { clientX: 50, clientY: 50 });
@@ -99,13 +99,13 @@ describe('최초 사용자 진입 흐름', () => {
     }
     fireEvent.click(screen.getByRole('button', { name: '다음 측정' }));
     for (let trial = 0; trial < 3; trial += 1) {
-      fireEvent.click(screen.getByRole('button', { name: trial === 0 ? '시작하기' : '다음 도형' }));
+      fireEvent.click(screen.getByRole('button', { name: trial === 0 ? '측정 시작' : '다음 도형' }));
       const area = screen.getByRole('application');
       Object.defineProperty(area, 'getBoundingClientRect', { configurable: true, value: () => ({ left: 0, top: 0, width: 100, height: 100 }) });
       fireEvent.pointerDown(area, { clientX: 50, clientY: 50 });
     }
     fireEvent.click(screen.getByRole('button', { name: '다음 측정' }));
-    fireEvent.click(screen.getByRole('button', { name: '시작하기' }));
+    fireEvent.click(screen.getByRole('button', { name: '측정 시작' }));
     fireEvent.click(screen.getByRole('button', { name: '여기서 나누기' }));
     fireEvent.click(screen.getByRole('button', { name: '다음 측정' }));
     fireEvent.click(screen.getByRole('button', { name: '여기서 나누기' }));
@@ -123,9 +123,9 @@ describe('최초 사용자 진입 흐름', () => {
     const requestSpy = vi.spyOn(window, 'requestAnimationFrame').mockImplementation(() => 1);
     render(<App initialScreen="control-assessment" />);
     for (let trial = 0; trial < 3; trial += 1) {
-      fireEvent.click(screen.getByRole('button', { name: trial === 0 ? '시작하기' : '다음 측정' }));
+      fireEvent.click(screen.getByRole('button', { name: trial === 0 ? '측정 시작' : '다음 측정' }));
       now += 1000;
-      fireEvent.click(screen.getByRole('button', { name: '멈춰!' }));
+      fireEvent.click(screen.getByRole('button', { name: '지금 멈추기' }));
     }
     fireEvent.click(screen.getByRole('button', { name: '다음 측정' }));
     expect(screen.getByRole('heading', { name: '시각 집중' })).toBeInTheDocument();
@@ -141,7 +141,7 @@ describe('최초 사용자 진입 흐름', () => {
     render(<App initialScreen="focus-assessment" />);
     const targetChoices = [2, 8, 11];
     targetChoices.forEach((choice, index) => {
-      fireEvent.click(screen.getByRole('button', { name: index === 0 ? '시작하기' : '다음 측정' }));
+      fireEvent.click(screen.getByRole('button', { name: index === 0 ? '측정 시작' : '다음 측정' }));
       act(() => { frames.shift()?.(0); frames.shift()?.(0); }); now += 1000;
       fireEvent.click(screen.getByRole('button', { name: `선택지 ${choice}` }));
     });
@@ -158,7 +158,7 @@ describe('최초 사용자 진입 흐름', () => {
     const draft = day1RawFixture.slice(0, 4).reduce<BaselineDraft>(addBaselineResult, {});
     render(<App initialScreen="focus-assessment" initialBaselineDraft={draft} initialSession={{ sessionId: 'session', startedAt: '2026-08-12T01:00:00.000Z', startedLocalDateKey: '2026-08-12' }} dateNow={() => new Date('2026-08-12T01:02:00.000Z')} />);
     [2, 8, 11].forEach((choice, index) => {
-      fireEvent.click(screen.getByRole('button', { name: index === 0 ? '시작하기' : '다음 측정' }));
+      fireEvent.click(screen.getByRole('button', { name: index === 0 ? '측정 시작' : '다음 측정' }));
       act(() => { frames.shift()?.(0); frames.shift()?.(0); }); now += 1000;
       fireEvent.click(screen.getByRole('button', { name: `선택지 ${choice}` }));
     });
@@ -198,7 +198,7 @@ describe('최초 사용자 진입 흐름', () => {
     const draft = day1RawFixture.slice(0, 4).reduce<BaselineDraft>(addBaselineResult, {});
     render(<App initialScreen="focus-assessment" initialBaselineDraft={draft} initialSession={{ sessionId: 'session', startedAt: '2026-08-12T01:00:00.000Z', startedLocalDateKey: '2026-08-12' }} dateNow={() => date} />);
     [2, 8, 11].forEach((choice, index) => {
-      fireEvent.click(screen.getByRole('button', { name: index === 0 ? '시작하기' : '다음 측정' }));
+      fireEvent.click(screen.getByRole('button', { name: index === 0 ? '측정 시작' : '다음 측정' }));
       act(() => { frames.shift()?.(0); frames.shift()?.(0); }); now += 1000;
       fireEvent.click(screen.getByRole('button', { name: `선택지 ${choice}` }));
     });

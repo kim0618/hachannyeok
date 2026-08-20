@@ -1,11 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, type CSSProperties } from 'react';
 import { PrimaryButton } from '../../../components/PrimaryButton';
 import { TIME_TARGET_DURATION_MS, useTimeTrial, type MeasurementClock } from './useTimeTrial';
-import { describeTimeError, formatSeconds } from './formatTimeResult';
+import { describeTimeDirection, describeTimeError, formatPreciseSeconds, formatSeconds, formatSignedSeconds } from './formatTimeResult';
 import type { Day1RawResult } from '../../../domain/assessment/results';
 import type { LocalDateKey } from '../../../domain/progression/types';
 import { toLocalDateKey } from '../../../domain/progression/localDate';
-import { TimeInstrument } from '../AssessmentInstruments';
+import { timeResultMarkerPosition } from './timeResultMarker';
 
 interface TimeAssessmentScreenProps {
   onComplete: (result: Extract<Day1RawResult, { assessmentType: 'day1_time' }>) => void;
@@ -14,6 +14,62 @@ interface TimeAssessmentScreenProps {
   createTrialId?: () => string;
   baselineSessionDateKey?: LocalDateKey;
   onDateInvalidated?: () => void;
+}
+
+const dialTicks = Array.from({ length: 60 }, (_, index) => index);
+
+function RunningTimeInstrument() {
+  return (
+    <div className="time-running-instrument" aria-hidden="true">
+      <span className="time-running-crown" />
+      <span className="time-running-stem" />
+      <svg viewBox="0 0 360 360" focusable="false">
+        <circle className="dial-outer" cx="180" cy="180" r="151" />
+        <circle className="dial-rim" cx="180" cy="180" r="140" />
+        <circle className="dial-calibration" cx="180" cy="180" r="118" />
+        <circle className="dial-guide" cx="180" cy="180" r="76" />
+        <circle className="dial-hub-ring" cx="180" cy="180" r="25" />
+        <line className="dial-axis" x1="28" y1="180" x2="332" y2="180" />
+        <line className="dial-axis" x1="180" y1="28" x2="180" y2="332" />
+        <g className="dial-ticks">
+          {dialTicks.map((tick) => (
+            <line key={tick} className={tick % 15 === 0 ? 'major' : tick % 5 === 0 ? 'medium' : ''} x1="180" y1="47" x2="180" y2={tick % 15 === 0 ? 64 : tick % 5 === 0 ? 59 : 55} transform={`rotate(${tick * 6} 180 180)`} />
+          ))}
+        </g>
+        <circle className="dial-point" cx="180" cy="180" r="4" />
+        <circle className="dial-cardinal" cx="180" cy="62" r="2" />
+        <circle className="dial-cardinal" cx="298" cy="180" r="2" />
+        <circle className="dial-cardinal" cx="180" cy="298" r="2" />
+        <circle className="dial-cardinal" cx="62" cy="180" r="2" />
+      </svg>
+      <div className="time-running-calibration time-running-calibration-left"><i /><i /><i /></div>
+      <div className="time-running-calibration time-running-calibration-right"><i /><i /><i /></div>
+    </div>
+  );
+}
+
+function TimeResultInstrument({ actualMs }: { actualMs: number }) {
+  const markerPosition = timeResultMarkerPosition(actualMs);
+  return (
+    <div className="time-result-instrument" aria-hidden="true" style={{ '--actual-marker-position': `${markerPosition}%` } as CSSProperties}>
+      <span className="time-result-crown" />
+      <svg viewBox="0 0 360 300" focusable="false">
+        <circle className="result-dial-outer" cx="180" cy="150" r="127" />
+        <circle className="result-dial-rim" cx="180" cy="150" r="116" />
+        <circle className="result-dial-calibration" cx="180" cy="150" r="94" />
+        <circle className="result-dial-guide" cx="180" cy="150" r="57" />
+        <circle className="result-dial-hub" cx="180" cy="150" r="24" />
+        <line className="result-dial-axis" x1="35" y1="150" x2="325" y2="150" />
+        <line className="result-dial-axis" x1="180" y1="20" x2="180" y2="280" />
+        <g className="result-dial-ticks">
+          {dialTicks.map((tick) => <line key={tick} className={tick % 15 === 0 ? 'major' : tick % 5 === 0 ? 'medium' : ''} x1="180" y1="34" x2="180" y2={tick % 15 === 0 ? 49 : tick % 5 === 0 ? 45 : 41} transform={`rotate(${tick * 6} 180 150)`} />)}
+        </g>
+      </svg>
+      <span className="time-result-marker time-result-target-marker" />
+      <span className="time-result-marker time-result-actual-marker" />
+      <span className="time-result-bracket bracket-left" /><span className="time-result-bracket bracket-right" />
+    </div>
+  );
 }
 
 export function TimeAssessmentScreen({ onComplete, clock, dateNow = () => new Date(), createTrialId, baselineSessionDateKey, onDateInvalidated }: TimeAssessmentScreenProps) {
@@ -25,14 +81,15 @@ export function TimeAssessmentScreen({ onComplete, clock, dateNow = () => new Da
 
   if (phase === 'running') {
     return (
-      <div className="screen time-screen running-screen">
+      <div className="screen time-screen running-screen time-running-poster">
         <header className="progress-header"><span>시간 감각</span><span>{Math.min(trials.length + 1, 3)} / 3</span></header>
-        <section className="running-content" aria-live="polite">
-          <TimeInstrument mode="running" />
+        <section className="running-content time-running-content" aria-live="polite">
+          <RunningTimeInstrument />
           <p className="eyebrow">3초라고 느껴질 때</p>
-          <h1>지금부터 셉니다</h1>
+          <h1>지금!</h1>
+          <p className="time-running-instruction">정확히 3초가 지났다고 느껴지는 순간<br />버튼을 눌러주세요.</p>
         </section>
-        <div className="bottom-action"><PrimaryButton className="now-button" onClick={assessment.completeTrial}>지금!</PrimaryButton></div>
+        <div className="bottom-action time-running-action"><PrimaryButton className="now-button" onClick={assessment.completeTrial}>지금!</PrimaryButton></div>
       </div>
     );
   }
@@ -86,16 +143,30 @@ export function TimeAssessmentScreen({ onComplete, clock, dateNow = () => new Da
 
   if (phase === 'result' && lastTrial) {
     const completionNeedsRetry = assessment.completion.status === 'retryAllowed';
+    const signedErrorMs = lastTrial.valid ? lastTrial.observedDurationMs - lastTrial.targetDurationMs : 0;
     return (
-      <div className="screen time-screen result-screen">
+      <div className="screen time-screen result-screen time-result-poster">
         <header className="progress-header"><span>시간 감각</span><span>{Math.min(trials.length, 3)} / 3</span></header>
-        <section className="trial-result" aria-live="polite">
+        <section className="trial-result time-trial-result" aria-live="polite">
           {lastTrial.valid ? (
             <>
-              <TimeInstrument mode="result" actualMs={lastTrial.observedDurationMs} />
-              <p className="eyebrow">측정 기록</p>
-              <h1>{formatSeconds(lastTrial.observedDurationMs)}</h1>
-              <p>{describeTimeError(lastTrial.observedDurationMs)}</p>
+              <p className="time-result-status"><span aria-hidden="true">✓</span> 측정 완료</p>
+              <p className="time-result-label">이번 기록</p>
+              <h1><span>{(lastTrial.observedDurationMs / 1000).toFixed(3)}</span><small>초</small></h1>
+              <div className="time-result-delta">
+                <span>목표 {formatPreciseSeconds(lastTrial.targetDurationMs)} 대비</span>
+                <strong>{formatSignedSeconds(signedErrorMs)}</strong>
+                <small>{describeTimeDirection(lastTrial.observedDurationMs)}</small>
+              </div>
+              <TimeResultInstrument actualMs={lastTrial.observedDurationMs} />
+              <div className="time-result-legend" aria-label="목표와 실제 기록 비교">
+                <span className="target">목표 ({formatPreciseSeconds(lastTrial.targetDurationMs)})</span>
+                <span className="actual">실제 ({formatPreciseSeconds(lastTrial.observedDurationMs)})</span>
+              </div>
+              <aside className="time-result-note">
+                <span className="note-target" aria-hidden="true" />
+                <div><strong>{describeTimeDirection(lastTrial.observedDurationMs)}</strong><p>{describeTimeError(lastTrial.observedDurationMs)}</p></div>
+              </aside>
             </>
           ) : (
             <>

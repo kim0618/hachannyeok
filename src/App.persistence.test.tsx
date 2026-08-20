@@ -95,7 +95,7 @@ describe('App persistence startup', () => {
     const draft = day1RawFixture.slice(0, 4).reduce<BaselineDraft>(addBaselineResult, {});
     render(<App initialScreen="focus-assessment" initialBaselineDraft={draft} initialSession={{ sessionId: 'stable-session', startedAt: '2026-08-12T01:00:00.000Z', startedLocalDateKey: '2026-08-12' }} dateNow={() => new Date('2026-08-12T01:02:00.000Z')} storagePort={storage} />);
     [2, 8, 11].forEach((choice, index) => {
-      fireEvent.click(screen.getByRole('button', { name: index === 0 ? '시작하기' : '다음 측정' }));
+      fireEvent.click(screen.getByRole('button', { name: index === 0 ? '측정 시작' : '다음 측정' }));
       act(() => { frames.shift()?.(0); frames.shift()?.(0); }); now += 1000;
       fireEvent.click(screen.getByRole('button', { name: `선택지 ${choice}` }));
     });
@@ -128,7 +128,7 @@ describe('App persistence startup', () => {
     const draft = day1RawFixture.slice(0, 4).reduce<BaselineDraft>(addBaselineResult, {});
     render(<App initialScreen="focus-assessment" initialPersistedData={data} initialBaselineDraft={draft} initialSession={{ sessionId: baselineFixture.sessionId, startedAt: baselineFixture.startedAt, startedLocalDateKey: '2026-08-12' }} dateNow={() => new Date('2026-08-12T01:03:00.000Z')} storagePort={storage} />);
     [2, 8, 11].forEach((choice, index) => {
-      fireEvent.click(screen.getByRole('button', { name: index === 0 ? '시작하기' : '다음 측정' }));
+      fireEvent.click(screen.getByRole('button', { name: index === 0 ? '측정 시작' : '다음 측정' }));
       act(() => { frames.shift()?.(0); frames.shift()?.(0); }); now += 2000;
       fireEvent.click(screen.getByRole('button', { name: `선택지 ${choice}` }));
     });
