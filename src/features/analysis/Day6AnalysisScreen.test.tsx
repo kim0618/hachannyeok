@@ -31,8 +31,9 @@ describe('Day6AnalysisScreen', () => {
     expect(conditionValue('멀리 떨어진 위치')).toBe('2.0%');
     expect(conditionValue('가까이 모인 위치')).toBe('8.0%');
     expect(screen.getByRole('heading', { name: '위치가 서로 가까워지면 기억 지점이 조금 더 흔들리는 편' })).toBeInTheDocument();
-    expect(screen.getByText('심화 분석 5/5')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: '시각 집중 점수' }).closest('section')).toHaveClass('score-secondary');
+    expect(screen.getByText('DAY 6 / 7')).toBeInTheDocument();
+    expect(screen.getByText('가장 애매했던 능력을 마지막으로 다시 확인합니다.')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'FOCUS 능력 변화' }).closest('section')).toHaveClass('score-secondary');
   });
 
   it('invalid A 뒤에도 원래 attempt index로 B/A identity와 scoring 방향을 유지한다', () => {
