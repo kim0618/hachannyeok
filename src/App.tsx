@@ -9,7 +9,6 @@ import { ControlAssessmentScreen } from './features/assessment/control/ControlAs
 import { FocusAssessmentScreen } from './features/assessment/focus/FocusAssessmentScreen';
 import { BasicAnalysisScreen } from './features/analysis/BasicAnalysisScreen';
 import { Day2AnalysisScreen } from './features/analysis/Day2AnalysisScreen';
-import { Day2IntroScreen } from './features/assessment/day2Time/Day2IntroScreen';
 import { Day2TimeAssessmentScreen } from './features/assessment/day2Time/Day2TimeAssessmentScreen';
 import { Day3IntroScreen } from './features/assessment/day3Center/Day3IntroScreen';
 import { Day3CenterAssessmentScreen } from './features/assessment/day3Center/Day3CenterAssessmentScreen';
@@ -221,10 +220,10 @@ export function App({ initialScreen = 'home', dateNow = defaultDateNow, createSe
   const beginDay2 = () => {
     const started = dateNow();
     setDailySession({ sessionId: createSessionId(), startedAt: started.toISOString(), localDateKey: toLocalDateKey(started) });
-    setScreen('day2-assessment');
+    setScreen('day2-intro');
   };
 
-  const restartDay2 = () => { setDailySession(null); setScreen('day2-intro'); };
+  const restartDay2 = () => { const started = dateNow(); setDailySession({ sessionId: createSessionId(), startedAt: started.toISOString(), localDateKey: toLocalDateKey(started) }); setScreen('day2-intro'); };
   const beginDay3 = () => { const started = dateNow(); setDailySession({ sessionId: createSessionId(), startedAt: started.toISOString(), localDateKey: toLocalDateKey(started) }); setScreen('day3-assessment'); };
   const restartDay3 = () => { setDailySession(null); setScreen('day3-intro'); };
   const beginDay4 = () => { const started = dateNow(); setDailySession({ sessionId: createSessionId(), startedAt: started.toISOString(), localDateKey: toLocalDateKey(started) }); setScreen('day4-assessment'); };
@@ -291,7 +290,7 @@ export function App({ initialScreen = 'home', dateNow = defaultDateNow, createSe
 
   return <AppShell>
     {screen === 'home' && userState === 'A' && <HomeScreen onStart={() => setScreen('intro')} />}
-    {screen === 'home' && userState !== 'A' && <ReturningHome state={userState} dailyCount={persisted.dailyRecords.length} onDaily={() => setScreen(persisted.dailyRecords.length === 0 ? 'day2-intro' : persisted.dailyRecords.length === 1 ? 'day3-intro' : persisted.dailyRecords.length === 2 ? 'day4-intro' : persisted.dailyRecords.length === 3 ? 'day5-intro' : persisted.dailyRecords.length===4?'day6-intro':'day7-intro')} onAnalysis={() => setScreen(userState==='F'?'final-report':'basic-analysis')} onClear={clearAll} />}
+    {screen === 'home' && userState !== 'A' && <ReturningHome state={userState} dailyCount={persisted.dailyRecords.length} onDaily={persisted.dailyRecords.length === 0 ? beginDay2 : () => setScreen(persisted.dailyRecords.length === 1 ? 'day3-intro' : persisted.dailyRecords.length === 2 ? 'day4-intro' : persisted.dailyRecords.length === 3 ? 'day5-intro' : persisted.dailyRecords.length===4?'day6-intro':'day7-intro')} onAnalysis={() => setScreen(userState==='F'?'final-report':'basic-analysis')} onClear={clearAll} />}
     {screen === 'intro' && <AssessmentIntroScreen onBack={() => setScreen('home')} onStart={beginBaseline} />}
     {screen === 'time-assessment' && <TimeAssessmentScreen dateNow={dateNow} baselineSessionDateKey={session?.startedLocalDateKey} onDateInvalidated={invalidateBaselineForDateChange} onComplete={(result) => preserveAndMove(result, 'center-assessment')} />}
     {screen === 'center-assessment' && <CenterAssessmentScreen variationSessionId={session?.sessionId} dateNow={dateNow} baselineSessionDateKey={session?.startedLocalDateKey} onDateInvalidated={invalidateBaselineForDateChange} onComplete={(result) => preserveAndMove(result, 'balance-assessment')} />}
@@ -300,7 +299,7 @@ export function App({ initialScreen = 'home', dateNow = defaultDateNow, createSe
     {screen === 'focus-assessment' && <FocusAssessmentScreen variationSessionId={session?.sessionId} dateNow={dateNow} baselineSessionDateKey={session?.startedLocalDateKey} onDateInvalidated={invalidateBaselineForDateChange} onComplete={finishBaseline} />}
     {screen === 'basic-analysis' && <BasicAnalysisScreen baseline={baseline} analysis={analysis} dailyCount={persisted.dailyRecords.length} saveStatus={saveStatus} onRetrySave={pendingSave ? () => { void writePending(pendingSave); } : undefined} onRestart={restart} onHome={pendingSave ? undefined : () => setScreen('home')} sharePort={sharePort} />}
     {screen === 'baseline-date-invalidated' && <BaselineDateInvalidatedScreen onRestart={restart} />}
-    {screen === 'day2-intro' && <Day2IntroScreen onStart={beginDay2} />}
+    {screen === 'day2-intro' && dailySession && <Day2TimeAssessmentScreen sessionDateKey={dailySession.localDateKey} dateNow={dateNow} onDateInvalidated={restartDay2} onComplete={finishDay2} />}
     {screen === 'day2-assessment' && dailySession && <Day2TimeAssessmentScreen sessionDateKey={dailySession.localDateKey} dateNow={dateNow} onDateInvalidated={restartDay2} onComplete={finishDay2} />}
     {screen === 'day2-result' && dailyResult && <Day2AnalysisScreen {...dailyResult} saveStatus={saveStatus} onRetrySave={pendingSave ? () => { void writePending(pendingSave); } : undefined} onHome={pendingSave ? undefined : () => setScreen('home')} onAnalysis={pendingSave ? undefined : () => setScreen('basic-analysis')} />}
     {screen === 'day3-intro' && <Day3IntroScreen onStart={beginDay3} />}

@@ -1,7 +1,9 @@
+import { type CSSProperties } from 'react';
 import { PrimaryButton } from '../../components/PrimaryButton';
 import type { TimeConditionTrial } from '../../domain/assessment/trials';
 import type { DerivedAnalysis } from '../../domain/scoring/types';
 import type { DailyRecord } from '../../domain/storage/types';
+import { DAY2_TIME_TARGET_DURATION_MS } from '../assessment/day2Time/day2TimeConfig';
 import { deriveTimeShiftDirection } from './day2TimeShift';
 
 interface Props {
@@ -15,8 +17,18 @@ interface Props {
 }
 
 const mean = (values: number[]) => values.reduce((sum, value) => sum + value, 0) / values.length;
-const milliseconds = (value: number) => `${Math.round(value)}ms`;
-const signedMilliseconds = (value: number) => `${value >= 0 ? '+' : ''}${Math.round(value)}ms`;
+const preciseSeconds = (value: number) => `${(value / 1000).toFixed(3)}초`;
+const signedSeconds = (value: number) => `${value > 0 ? '+' : ''}${preciseSeconds(value)}`;
+const signedPosition = (value: number) => Math.max(5, Math.min(95, 50 + value / 6));
+
+function AnalysisProgress() {
+  const steps = [{ label: 'INTRO', state: 'complete' }, { label: 'PLAIN', state: 'complete' }, { label: 'DISTRACTED', state: 'complete' }, { label: 'ANALYSIS', state: 'active' }, { label: 'COMPLETE', state: 'pending' }] as const;
+  return <ol className="day2-condition-progress" aria-label="DAY 2 진행 단계">{steps.map((step) => <li className={`is-${step.state}`} key={step.label} aria-current={step.state === 'active' ? 'step' : undefined}><span aria-hidden="true">{step.state === 'complete' ? '✓' : ''}</span><strong>{step.label}</strong></li>)}</ol>;
+}
+
+function SignedMiniScale({ value }: { value: number }) {
+  return <div className="day2-analysis-mini-scale" aria-hidden="true" style={{ '--signed-position': `${signedPosition(value)}%` } as CSSProperties}><div /><i /><span>-0.300초</span><span>0</span><span>+0.300초</span><small>너무 빠름</small><small>정확</small><small>너무 늦음</small></div>;
+}
 
 export function Day2AnalysisScreen({ record, before, after, saveStatus, onRetrySave, onHome, onAnalysis }: Props) {
   const trials = record.rawResult.assessmentType === 'day2_time_distraction' ? record.rawResult.trials.filter((trial): trial is Extract<TimeConditionTrial, { valid: true }> => trial.valid) : [];
@@ -46,5 +58,24 @@ export function Day2AnalysisScreen({ record, before, after, saveStatus, onRetryS
         : shiftDirection === 'later'
           ? '방해가 들어오면 평소보다 늦게 누르는 방향이 확인됐어요.'
           : '방해 조건에서도 빠름이나 늦음의 한쪽 방향은 뚜렷하지 않았어요.';
-  return <div className="screen analysis-screen daily-analysis day2-analysis"><header className="analysis-record-header"><span>쓸능검 · 추가 분석</span><span>DAY 2</span></header><main><section className="analysis-hero"><p className="eyebrow">오늘 새로 확인한 것</p><h1>{hero}</h1>{smallDifference && <p className="difference-summary">이번 조건 차이는 {milliseconds(Math.abs(delta))}로 작았어요.</p>}<span className="analysis-chip">심화 분석 1/5</span></section><section className="report-section condition-comparison"><div className="section-index">01 · CONDITION DIFFERENCE</div><h2>평소와 방해 조건 비교</h2><div className="condition-cards"><div><span>평소</span><strong>{milliseconds(plainAbsolute)}</strong><small>평균 오차</small></div><div><span>방해</span><strong>{milliseconds(distractedAbsolute)}</strong><small>평균 오차</small></div></div><div className="condition-delta"><span>조건 차이</span><strong>{signedMilliseconds(delta)}</strong></div></section><section className="report-section"><div className="section-index">02 · INTERPRETATION</div><h2>근거 해석</h2><p>{interpretation}</p><p className="signed-detail">평소 signed error {signedMilliseconds(plainSigned)} · 방해 {signedMilliseconds(distractedSigned)}</p></section><section className="report-section score-secondary"><div className="section-index">03 · TIME SCORE</div><h2>시간 감각 점수</h2>{neutralDegradation && <p>평소보다 오차 폭이 커졌어요.</p>}{scoreChanged ? <p className="score-change">{before.scores.time} → {after.scores.time}</p> : <p>시간 감각 점수는 그대로 유지됐어요.</p>}<p>중심·균형·통제·집중 점수는 기존 결과를 유지합니다.</p></section>{saveStatus === 'saving' && <p role="status" className="storage-status">추가 분석을 기기에 저장하고 있습니다.</p>}{saveStatus === 'failed' && <div role="alert" className="storage-warning"><p>추가 분석을 저장하지 못했습니다. 측정 결과는 그대로 유지됩니다.</p>{onRetrySave && <button className="secondary-button" onClick={onRetrySave}>다시 저장</button>}</div>}<div className="analysis-actions"><PrimaryButton disabled={!onHome} onClick={onHome}>홈으로</PrimaryButton>{onAnalysis && <button className="secondary-button" onClick={onAnalysis}>업데이트된 분석서 보기</button>}</div></main></div>;
+  const change = after.scores.time - before.scores.time;
+  const deltaCopy = delta > 0 ? '방해 요소가 있을 때 시간 감각 오차가 더 커졌습니다.' : delta < 0 ? '방해 조건에서 시간 감각 오차가 더 작았습니다.' : '두 조건에서 같은 시간 감각 오차를 보였습니다.';
+  const targetMs = trials[0]?.targetDurationMs ?? DAY2_TIME_TARGET_DURATION_MS;
+  return <div className="screen analysis-screen daily-analysis day2-analysis day2-analysis-poster">
+    <header className="day2-ready-masthead"><span className="day2-ready-back" aria-hidden="true">‹</span><div><strong>DAY 2</strong><h1>시간 감각 · 조건 비교</h1></div><span className="day2-ready-help" aria-hidden="true">?</span></header>
+    <AnalysisProgress />
+    <main>
+      <section className="day2-analysis-complete"><span aria-hidden="true">▥</span><div><h2>분석 완료</h2><p>두 조건에서의 시간 감각 차이를 분석했습니다.</p></div></section>
+      <header className="day2-analysis-heading"><h2>조건별 평균 오차</h2><p>목표 시간 {preciseSeconds(targetMs)} 기준</p></header>
+      <section className="day2-analysis-condition-grid" aria-label="조건별 평균 오차 비교">
+        <article className="is-plain"><span className="condition-icon" aria-hidden="true">♧</span><h3>기본 조건 · PLAIN</h3><p>평균 오차 (|초|)</p><strong>{preciseSeconds(plainAbsolute)}</strong><small>시도 {signed('plain').length}회</small><SignedMiniScale value={plainSigned} /></article>
+        <article className="is-distracted"><span className="condition-icon" aria-hidden="true">◉</span><h3>방해 조건 · DISTRACTED</h3><p>평균 오차 (|초|)</p><strong>{preciseSeconds(distractedAbsolute)}</strong><small>시도 {signed('distracted').length}회</small><SignedMiniScale value={distractedSigned} /></article>
+      </section>
+      <section className="day2-analysis-delta"><div><p>조건 차이 <small>(DISTRACTED − PLAIN)</small></p><strong>{signedSeconds(delta)}</strong></div><div><p>{deltaCopy}</p><span>{delta > 0 ? '오차 증가' : delta < 0 ? '오차 감소' : '차이 없음'}</span></div></section>
+      <section className="day2-analysis-interpretation"><span aria-hidden="true">◎</span><div><h2>짧은 해석</h2><strong>{hero}</strong><p>{interpretation}</p>{smallDifference && <small>이번 조건 차이는 {preciseSeconds(Math.abs(delta))}로 작았어요.</small>}<small className="signed-detail">기본 signed error {signedSeconds(plainSigned)} · 방해 {signedSeconds(distractedSigned)}</small></div></section>
+      <section className="day2-analysis-score"><h2>TIME 능력 변화</h2><div><span aria-hidden="true">◷</span><dl><div><dt>기존 TIME</dt><dd>{before.scores.time}</dd></div><i aria-hidden="true">→</i><div><dt>현재 TIME</dt><dd>{after.scores.time}</dd></div><strong aria-label={`변화량 ${change > 0 ? '+' : ''}${change}`}>{change > 0 ? '+' : ''}{change}</strong><p>조건 비교 결과를 반영한 기존 scoring 결과입니다.<br />(±8 범위 내 조정)</p></dl></div>{!scoreChanged && <small>시간 감각 점수는 그대로 유지됐어요.</small>}{neutralDegradation && <small>평소보다 오차 폭이 커졌어요.</small>}</section>
+      {saveStatus === 'saving' && <p role="status" className="storage-status">추가 분석을 기기에 저장하고 있습니다.</p>}{saveStatus === 'failed' && <div role="alert" className="storage-warning"><p>추가 분석을 저장하지 못했습니다. 측정 결과는 그대로 유지됩니다.</p>{onRetrySave && <button className="secondary-button" onClick={onRetrySave}>다시 저장</button>}</div>}
+      <div className="day2-analysis-actions"><PrimaryButton disabled={!onHome} onClick={onHome}>분석 결과 확인 완료</PrimaryButton>{onAnalysis && <button className="secondary-button" onClick={onAnalysis}>업데이트된 분석서 보기</button>}<p>모든 데이터는 안전하게 저장되며 분석에만 사용됩니다.</p></div>
+    </main>
+  </div>;
 }

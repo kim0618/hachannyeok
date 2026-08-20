@@ -159,16 +159,15 @@ describe('App persistence startup', () => {
     const storage = new MemoryStorageAdapter(data);
     const app = render(<App storagePort={storage} bypassInitialLoad={false} dateNow={() => new Date('2026-08-13T12:00:00.000Z')} createSessionId={() => 'stable-day2-session'} />);
     fireEvent.click(await screen.findByRole('button', { name: '오늘의 추가 분석' }));
-    expect(screen.getByRole('heading', { name: /방해가 있어도/ })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: '추가 분석 시작' }));
+    expect(screen.getByRole('heading', { name: '시간 감각 · 조건 비교' })).toBeInTheDocument();
     for (let index = 0; index < 4; index += 1) {
-      fireEvent.click(screen.getByRole('button', { name: index === 0 ? '측정 시작' : '다음 측정' }));
+      fireEvent.click(screen.getByRole('button', { name: index === 0 ? '측정 시작' : '다음 측정으로 이동' }));
       fireEvent.click(screen.getByRole('button', { name: '지금!' }));
     }
     fireEvent.click(screen.getByRole('button', { name: '결과 확인' }));
-    expect(screen.getByText('심화 분석 1/5')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '분석 완료' })).toBeInTheDocument();
     await waitFor(() => expect(storage.peek()?.dailyRecords[0]).toMatchObject({ recordId: 'stable-day2-session:day2', analysisDay: 2, assessmentType: 'day2_time_distraction', localDateKey: '2026-08-13' }));
-    fireEvent.click(screen.getByRole('button', { name: '홈으로' }));
+    fireEvent.click(screen.getByRole('button', { name: '분석 결과 확인 완료' }));
     expect(screen.getByRole('heading', { name: '오늘의 추가 분석 완료' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '업데이트된 분석서 보기' })).toBeInTheDocument();
     app.unmount();
@@ -181,13 +180,13 @@ describe('App persistence startup', () => {
     vi.spyOn(performance, 'now').mockImplementation(() => { performanceTime += 3000; return performanceTime; });
     const storage = new MemoryStorageAdapter(data); storage.fail('save');
     render(<App storagePort={storage} initialPersistedData={data} dateNow={() => new Date('2026-08-13T12:00:00.000Z')} createSessionId={() => 'retry-day2-session'} />);
-    fireEvent.click(screen.getByRole('button', { name: '오늘의 추가 분석' })); fireEvent.click(screen.getByRole('button', { name: '추가 분석 시작' }));
-    for (let index = 0; index < 4; index += 1) { fireEvent.click(screen.getByRole('button', { name: index === 0 ? '측정 시작' : '다음 측정' })); fireEvent.click(screen.getByRole('button', { name: '지금!' })); }
+    fireEvent.click(screen.getByRole('button', { name: '오늘의 추가 분석' }));
+    for (let index = 0; index < 4; index += 1) { fireEvent.click(screen.getByRole('button', { name: index === 0 ? '측정 시작' : '다음 측정으로 이동' })); fireEvent.click(screen.getByRole('button', { name: '지금!' })); }
     fireEvent.click(screen.getByRole('button', { name: '결과 확인' }));
     expect(await screen.findByText(/추가 분석을 저장하지 못했습니다/)).toBeInTheDocument();
     storage.recover('save'); fireEvent.click(screen.getByRole('button', { name: '다시 저장' }));
     await waitFor(() => expect(storage.peek()?.dailyRecords[0]?.recordId).toBe('retry-day2-session:day2'));
-    expect(screen.getByText('오늘 새로 확인한 것')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '분석 완료' })).toBeInTheDocument();
   });
 
   it('DAY 2 다음 유효 날짜에는 DAY 3 intro를 연결하고 날짜 역행은 unlock하지 않는다', async () => {

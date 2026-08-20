@@ -1,0 +1,2 @@
+interface Props{day:number;totalDays:number;insight:string;nextTeaser:string}
+export function DailyDiscoveryPanel({day,totalDays,insight,nextTeaser}:Props){return <section className="daily-discovery"><p>오늘 새로 발견한 것</p><div className="daily-discovery-insight">{insight}</div><div><span>분석 진행도</span><strong>DAY {day} / {totalDays}</strong></div><footer><span>다음에 확인할 것</span><strong>{nextTeaser}</strong></footer></section>}
