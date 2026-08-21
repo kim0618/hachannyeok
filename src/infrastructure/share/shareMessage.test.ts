@@ -13,12 +13,13 @@ describe('shareMessage', () => {
     if (!analysis.ok) return;
     const representative = selectRepresentativeCertification(analysis.value.certifications, analysis.value.scores);
     const message = basicShareMessage(analysis.value);
-    expect(message).toContain('[쓸능검 기본 분석]');
+    expect(message).toContain('[쓸능검 기본 분석 · DAY 1]');
     expect(message).toContain(`종합 쓸능검 ${analysis.value.overallScore}점`);
     expect(message).toContain(profileDisplay(analysis.value.profile)!.replace('\n', ' '));
     expect(message).toContain(CERTIFICATION_LABELS[representative.ability][representative.tier]);
     expect(basicShareMessage(analysis.value)).toBe(message);
-    expect(message).not.toMatch(/sessionId|recordId|localDateKey|profileFamilyKey|contentKey|startedAt|completedAt/);
+    expect(message).not.toMatch(/sessionId|recordId|localDateKey|profileFamilyKey|contentKey|startedAt|completedAt|storage key|assessmentType|deploymentId|schema version|debug state|hachannyeok/i);
+    expect(message).not.toMatch(/최종 분석|7일 완료|최종 프로필 확정/);
     expect(message).not.toContain(baselineFixture.sessionId);
     expect(message).not.toContain(baselineFixture.recordId);
   });
@@ -34,6 +35,6 @@ describe('shareMessage', () => {
     expect(message).toContain(profileDisplay(analysis.value.profile)!.replace('\n', ' '));
     expect(message).toContain(CERTIFICATION_LABELS[representative.ability][representative.tier]);
     expect(finalShareMessage(analysis.value)).toBe(message);
-    expect(message).not.toMatch(/sessionId|recordId|localDateKey|profileFamilyKey|contentKey|startedAt|completedAt/);
+    expect(message).not.toMatch(/sessionId|recordId|localDateKey|profileFamilyKey|contentKey|startedAt|completedAt|storage key|assessmentType|deploymentId|schema version|debug state|hachannyeok/i);
   });
 });

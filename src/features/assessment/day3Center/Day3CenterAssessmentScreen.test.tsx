@@ -19,6 +19,10 @@ describe('Day3CenterAssessmentScreen', () => {
     for (let index = 0; index < 3; index += 1) { expect(area.querySelectorAll('.day3-decoration')).toHaveLength(index === 0 ? 0 : 5); fireEvent.pointerDown(area, { clientX: 110, clientY: 70 }); fireEvent.pointerDown(area, { clientX: 120, clientY: 70 }); if (index < 2) { fireEvent.click(screen.getByRole('button', { name: '다음 측정' })); area = screen.getByRole('application', { name: '위치를 선택하는 영역' }); vi.spyOn(area, 'getBoundingClientRect').mockReturnValue(rect); } }
     fireEvent.click(screen.getByRole('button', { name: '결과 확인' })); expect(done).toHaveBeenCalledOnce(); expect(done.mock.calls[0]![0].trials).toHaveLength(3);
   });
+  it('OPTICAL BIAS frame이 plain/LEFT/RIGHT condition을 그대로 mapping하고 center cue를 만들지 않는다', () => {
+    const view=render(<Day3CenterAssessmentScreen {...props()} />);let area=start();
+    for(const label of ['NEUTRAL FIELD','LEFT FIELD','RIGHT FIELD']){expect(screen.getByText(label)).toBeInTheDocument();expect(view.container.querySelector('.day3-optical-rails')).toHaveAttribute('aria-hidden','true');expect(area.querySelector('.center-marker,.center-crosshair,.center-guide')).not.toBeInTheDocument();fireEvent.pointerDown(area,{clientX:110,clientY:70});if(label!=='RIGHT FIELD'){fireEvent.click(screen.getByRole('button',{name:'다음 측정'}));area=screen.getByRole('application',{name:'위치를 선택하는 영역'});vi.spyOn(area,'getBoundingClientRect').mockReturnValue(rect);}}
+  });
   it('RUNNING background는 invalid retry로 보내고 기존 기록 삭제를 요구하지 않는다', () => {
     render(<Day3CenterAssessmentScreen {...props()} />); start(); Object.defineProperty(document, 'visibilityState', { configurable: true, value: 'hidden' }); fireEvent(document, new Event('visibilitychange'));
     expect(screen.getByRole('alert')).toHaveTextContent('다시 측정'); Object.defineProperty(document, 'visibilityState', { configurable: true, value: 'visible' });

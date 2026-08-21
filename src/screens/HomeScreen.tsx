@@ -5,6 +5,16 @@ interface HomeScreenProps {
 export function HomeScreen({ onStart }: HomeScreenProps) {
   return (
     <div className="screen home-screen home-reference-shell">
+      <section className="seven-day-visible-journey" aria-label="7일 분석 과정">
+        <p>7일 동안 조건을 바꿔 최종 결과를 완성합니다.</p>
+        <div>
+          <span><b>DAY 1</b>기준 측정</span>
+          <i aria-hidden="true">→</i>
+          <span><b>DAY 2–6</b>조건 변화</span>
+          <i aria-hidden="true">→</i>
+          <span><b>DAY 7</b>최종 보정</span>
+        </div>
+      </section>
       <div className="home-reference-poster">
         <img src="/assets/home-reference.png" alt="" aria-hidden="true" draggable="false" />
         <div className="home-interaction-layer">
@@ -13,12 +23,6 @@ export function HomeScreen({ onStart }: HomeScreenProps) {
             type="button"
             aria-label="쓸능검 측정 시작"
             onClick={onStart}
-          />
-          <button
-            className="home-reference-secondary"
-            type="button"
-            aria-label="오늘의 추가 검사 보기"
-            disabled
           />
         </div>
       </div>

@@ -14,9 +14,16 @@ describe('App DAY7',()=>{
     const storage=new MemoryStorageAdapter(timeSelectedFixture);
     const shareOpen=vi.fn().mockResolvedValue(undefined);
     const first=render(<App storagePort={storage} sharePort={{open:shareOpen}} bypassInitialLoad={false} dateNow={()=>new Date('2026-08-18T12:00:00Z')} createSessionId={()=> 'day7-session'}/>);
+    expect(await screen.findByText(/DAY 1~6 누적 측정 근거를 바탕으로/)).toBeVisible();
+    expect(screen.queryByText(/누적 evidence/)).not.toBeInTheDocument();
     fireEvent.click(await screen.findByRole('button',{name:'최종 분석 시작'}));
-    fireEvent.click(screen.getByRole('button',{name:'최종 보정 시작'}));
-    fireEvent.click(screen.getByRole('button',{name:'최종 보정 시작'}));
+    expect(screen.getByText('DAY 7 / 7')).toBeInTheDocument();
+    expect(screen.getByRole('heading',{name:/마지막 최종 보정을 진행합니다/})).toBeInTheDocument();
+    expect(document.querySelector('.final-calibration-seal')).toHaveAttribute('aria-hidden','true');
+    fireEvent.click(screen.getByRole('button',{name:'마지막 보정 확인하기'}));
+    expect(screen.getByText('최종 보정 대상')).toBeInTheDocument();
+    expect(screen.getAllByText('시간 감각').length).toBeGreaterThan(0);
+    fireEvent.click(screen.getByRole('button',{name:'측정 시작'}));
     expect(screen.getByRole('heading',{name:'3초라고 느껴질 때 눌러주세요.'})).toBeInTheDocument();
     for(let index=0;index<3;index++){
       fireEvent.click(screen.getByRole('button',{name:'지금!'}));
@@ -24,7 +31,12 @@ describe('App DAY7',()=>{
     }
     fireEvent.click(screen.getByRole('button',{name:'최종 결과 확인'}));
     expect(await screen.findByText('최종 분석 완료')).toBeInTheDocument();
-    expect(screen.getByText('7 / 7 COMPLETE')).toBeInTheDocument();
+    expect(document.querySelector('.final-analysis-screen')).toHaveClass('final-completion-motion');
+    expect(screen.getByText('CALIBRATION COMPLETE')).toBeInTheDocument();
+    expect(screen.getByText(/DAY 7 \/ 7 · 7일 분석 완주/)).toBeInTheDocument();
+    expect(screen.queryByText('다음에 확인할 것')).not.toBeInTheDocument();
+    const cardBeforeReload=screen.getByRole('figure',{name:/쓸능검 최종 결과\. 7일 완료/}).getAttribute('aria-label');
+    expect(cardBeforeReload).toContain('마지막 보정 시간');
     expect(document.querySelector('.certification-seal-copy')).toHaveTextContent('PRECISION CERTIFIED');
     expect(document.querySelector('.certification-hero .certification-seal')).toHaveAttribute('aria-hidden','true');
     const compact=screen.getByLabelText('최종 분석 5개 능력 요약');
@@ -53,6 +65,8 @@ describe('App DAY7',()=>{
     render(<App initialPersistedData={saved??undefined} dateNow={()=>new Date('2026-08-19T12:00:00Z')}/>);
     fireEvent.click(screen.getByRole('button',{name:'최종 사용설명서 보기'}));
     expect(screen.getByText('최종 분석 완료')).toBeInTheDocument();
+    expect(document.querySelector('.final-analysis-screen')).toHaveClass('final-completion-motion');
+    expect(screen.getByRole('figure',{name:/쓸능검 최종 결과\. 7일 완료/})).toHaveAttribute('aria-label',cardBeforeReload);
     expect(deriveAnalysis(saved!)).toEqual(beforeReload);
   });
 });

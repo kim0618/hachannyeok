@@ -4,6 +4,7 @@ import type { SpatialMemoryTrial } from '../../domain/assessment/trials';
 import { matchingMeanDistance } from '../../domain/scoring/normalizers';
 import type { DerivedAnalysis } from '../../domain/scoring/types';
 import type { DailyRecord } from '../../domain/storage/types';
+import { DailyDiscoveryPanel } from './DailyDiscoveryPanel';
 
 interface Props {
   record: DailyRecord;
@@ -50,10 +51,10 @@ export function Day6AnalysisScreen({ record, before, after, saveStatus, onRetryS
   return <div className="screen analysis-screen daily-analysis day6-analysis">
     <header className="analysis-record-header"><span>쓸능검 · 추가 분석</span><span>DAY 6</span></header>
     <main>
-      <section className="analysis-hero"><p className="eyebrow">오늘 새로 확인한 것</p><h1>{headline}</h1><span className="analysis-chip">심화 분석 5/5</span></section>
-      <section className="report-section">
-        <div className="section-index">01 · SPATIAL MEMORY</div><h2>위치 간격에 따른 기억 비교</h2>
-        <div className="condition-cards"><div><span>멀리 떨어진 위치</span><strong>{pct(spreadMean)}</strong><small>평균 위치 오차</small></div><div><span>가까이 모인 위치</span><strong>{pct(clusteredMean)}</strong><small>평균 위치 오차</small></div></div>
+      <DailyDiscoveryPanel day={6} insight={headline} nextTeaser="DAY 7에는 누적 기록을 바탕으로 마지막 보정을 확인해요."><span className="analysis-chip">심화 분석 5/5</span></DailyDiscoveryPanel>
+      <section className="report-section day6-memory-analysis-section">
+        <div className="section-index">01 · SPATIAL MEMORY</div><h2>공간 기억 조건 비교</h2>
+        <div className="condition-cards"><div><span>넓은 배치 · SPREAD</span><strong>{pct(spreadMean)}</strong><small>평균 위치 오차</small></div><div><span>밀집 배치 · CLUSTERED</span><strong>{pct(clusteredMean)}</strong><small>평균 위치 오차</small></div></div>
         <div className="condition-delta"><span>{eligible ? (change > 0 ? '오차 증가' : '오차 감소') : '변화 거의 없음'}</span><strong>{delta(change)}</strong></div>
       </section>
       <section className="report-section score-secondary"><div className="section-index">02 · FOCUS SCORE</div><h2>시각 집중 점수</h2>{scoreChanged ? <p className="score-change">{before.scores.focus} → {after.scores.focus}</p> : <p>시각 집중 점수는 그대로 유지됐어요.</p>}<p>시간·중심·균형·통제 점수는 기존 결과를 유지합니다.</p></section>
