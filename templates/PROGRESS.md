@@ -2,7 +2,7 @@
 
 ## 현재 단계
 
-- Current: **Integration 46.0 REMOTE DAY1~6 Visual Redesign + LOCAL DAY7/Final Polish 통합 (commit 대기)**
+- Current: **Integration 46.0 REMOTE DAY1~6 Visual Redesign + LOCAL DAY7/Final Polish 통합 완료 (`f5c8f72` main push 완료)**
 - REMOTE의 DAY1~6 assessment/analysis redesign과 responsive CSS를 baseline으로 두고, LOCAL의 DAY3/4/5/6 signature와 DAY7·Final polish를 그 위에 재적용함.
 - DAY1~7 측정 기능과 storage/scoring/raw 계약은 모두 구현 완료 상태이며 미구현 영역은 없음.
 - Design Upgrade 완료: DAY1~6 poster 재설계 위에 DAY3 OPTICAL BIAS FIELD, DAY4 THREE-WAY DISTRIBUTION, DAY5 neutral MOTION CONTROL, DAY6 Memory Signature(OBSERVE / MEMORY HOLD / RECALL / MEMORY RECONSTRUCTION)를 적용함.
@@ -12,7 +12,13 @@
 - Simulated First-user polish 완료: HOME/INTRO visible 7-day journey와 Basic `BASELINE · 1차 분석 / DAY 1 / 7` framing 유지.
 - DAY5 RUNNING은 condition identity를 노출하지 않으며 motion protocol(RAF, piecewise speed, target, raw, stop timing)은 변경하지 않음.
 - Native / Apps in Toss 대응은 마지막 단계로 보류함.
-- Next: **사용자 검토 후 commit/push, 이어서 human first-user test / Native QA 재개**
+- 통합 방식: origin/main(REMOTE)을 baseline으로 두고 로컬 `074e295`를 cherry-pick으로 의미 병합함. 충돌 16건은 파일별 semantic merge로 해결했고 일괄 ours/theirs는 사용하지 않음.
+- ⚠️ 통합 전 로컬 원본은 태그 `pre-integration`(=`074e295`, 원격에도 push됨)으로만 접근 가능함. cherry-pick이라 main 히스토리에서는 도달할 수 없으므로 대조가 필요하면 이 태그를 사용할 것.
+- 병합 중 조정한 결정: DAY5 CTA를 `지금 멈추기`로 통일, DAY6 assessment는 LOCAL Memory Signature 채택, DailyDiscoveryPanel을 `src/components/`로 단일화, Day2 hero가 해석 섹션과 Daily Discovery 두 곳에 노출되는 계약으로 테스트 갱신.
+- 커밋 전 freeze fix 4건: Final completion copy 대비 1.13:1 → 10.22:1(`--emerald-900`), PrimaryButton이 문자열 children을 aria-label로 고정(장식 글리프 ⊕·→가 accessible name에 섞이던 문제), REPORT pill `::before` nowrap, DAY6 화면 `min-height:100dvh` + ivory 패널 배경.
+- 검증: typecheck / lint / 82 files 477 tests / build:web / build:ait / build / `git diff --check` 통과. 브라우저 QA는 320·360·390·412·430 × 15장면 = 75장면 위반 0(`artifacts/integration-final-visual-qa/`, harness는 qa.html + qa-entry.tsx 재사용 가능).
+- 알려진 Minor 2건(세 브랜치 공통 기존 상태, 미수정): 320/360에서 Final REPORT pill 2행 접힘(잘림·overflow 없음), DAY6 배경을 다른 DAY와 맞추며 카드 뒤 그래프 용지 텍스처가 ivory 패널로 바뀜.
+- Next: **실기기 human first-user test, 이어서 Native / Apps in Toss QA 재개**
 
 - 단계 번호: 27.1
 - 단계 이름: Final Hero Calibration Summary + DAY7 Targeted E2E
