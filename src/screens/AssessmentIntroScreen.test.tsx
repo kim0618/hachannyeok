@@ -14,6 +14,11 @@ describe('AssessmentIntroScreen', () => {
     expect(poster).toHaveAttribute('aria-hidden', 'true');
     expect(container.querySelector('.intro-accessible-summary')).toHaveTextContent('쓸능검');
     expect(container.querySelector('.intro-accessible-summary')).toHaveTextContent('총 5개 · 약 90초');
+    const journey = screen.getByRole('region', { name: '7일 분석 과정' });
+    expect(journey).toBeVisible();
+    expect(journey).toHaveTextContent('DAY 1기준점');
+    expect(journey).toHaveTextContent('DAY 2–6조건 변화');
+    expect(journey).toHaveTextContent('DAY 7최종 보정');
     expect(container.querySelector('.screen-heading')).not.toBeInTheDocument();
     expect(container.querySelector('.instruction-card')).not.toBeInTheDocument();
 

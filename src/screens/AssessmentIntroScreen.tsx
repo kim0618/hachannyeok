@@ -6,6 +6,16 @@ interface AssessmentIntroScreenProps {
 export function AssessmentIntroScreen({ onBack, onStart }: AssessmentIntroScreenProps) {
   return (
     <div className="screen intro-screen intro-reference-shell">
+      <section className="seven-day-visible-journey" aria-label="7일 분석 과정">
+        <p>오늘 기준점을 만들고, 7일 동안 조건별 반응을 확인합니다.</p>
+        <div>
+          <span><b>DAY 1</b>기준점</span>
+          <i aria-hidden="true">→</i>
+          <span><b>DAY 2–6</b>조건 변화</span>
+          <i aria-hidden="true">→</i>
+          <span><b>DAY 7</b>최종 보정</span>
+        </div>
+      </section>
       <div className="intro-reference-poster">
         <img src="/assets/intro-reference.png" alt="" aria-hidden="true" draggable="false" />
         <div className="intro-interaction-layer">

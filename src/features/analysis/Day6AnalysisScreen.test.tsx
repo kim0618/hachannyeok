@@ -28,8 +28,8 @@ const conditionValue = (label: string) => within(screen.getByText(label).parentE
 describe('Day6AnalysisScreen', () => {
   it('정상 A/B를 spread/clustered로 표시하고 Focus를 secondary로 둔다', () => {
     renderResult([validTrial(0, .02), validTrial(1, .08)]);
-    expect(conditionValue('멀리 떨어진 위치')).toBe('2.0%');
-    expect(conditionValue('가까이 모인 위치')).toBe('8.0%');
+    expect(conditionValue('넓은 배치 · SPREAD')).toBe('2.0%');
+    expect(conditionValue('밀집 배치 · CLUSTERED')).toBe('8.0%');
     expect(screen.getByRole('heading', { name: '위치가 서로 가까워지면 기억 지점이 조금 더 흔들리는 편' })).toBeInTheDocument();
     expect(screen.getByText('DAY 6 / 7')).toBeInTheDocument();
     expect(screen.getByText('가장 애매했던 능력을 마지막으로 다시 확인합니다.')).toBeInTheDocument();
@@ -38,8 +38,8 @@ describe('Day6AnalysisScreen', () => {
 
   it('invalid A 뒤에도 원래 attempt index로 B/A identity와 scoring 방향을 유지한다', () => {
     const { before, after } = renderResult([invalidTrial(0), validTrial(1, .08), validTrial(2, .02)]);
-    expect(conditionValue('멀리 떨어진 위치')).toBe('2.0%');
-    expect(conditionValue('가까이 모인 위치')).toBe('8.0%');
+    expect(conditionValue('넓은 배치 · SPREAD')).toBe('2.0%');
+    expect(conditionValue('밀집 배치 · CLUSTERED')).toBe('8.0%');
     expect(screen.getByText('+6.0%p')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '위치가 서로 가까워지면 기억 지점이 조금 더 흔들리는 편' })).toBeInTheDocument();
     expect(after.scores.focus).toBeLessThan(before.scores.focus);

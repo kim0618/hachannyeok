@@ -187,6 +187,7 @@ describe('App persistence startup', () => {
     storage.recover('save'); fireEvent.click(screen.getByRole('button', { name: '다시 저장' }));
     await waitFor(() => expect(storage.peek()?.dailyRecords[0]?.recordId).toBe('retry-day2-session:day2'));
     expect(screen.getByRole('heading', { name: '분석 완료' })).toBeInTheDocument();
+    expect(screen.getByText('오늘 새로 발견한 것')).toBeInTheDocument();
   });
 
   it('DAY 2 다음 유효 날짜에는 DAY 3 intro를 연결하고 날짜 역행은 unlock하지 않는다', async () => {

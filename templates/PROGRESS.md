@@ -2,6 +2,33 @@
 
 ## 현재 단계
 
+- Current: **Integration 46.0 REMOTE DAY1~6 Visual Redesign + LOCAL DAY7/Final Polish 통합 (commit 대기)**
+- REMOTE의 DAY1~6 assessment/analysis redesign과 responsive CSS를 baseline으로 두고, LOCAL의 DAY3/4/5/6 signature와 DAY7·Final polish를 그 위에 재적용함.
+- DAY1~7 측정 기능과 storage/scoring/raw 계약은 모두 구현 완료 상태이며 미구현 영역은 없음.
+- Design Upgrade 완료: DAY1~6 poster 재설계 위에 DAY3 OPTICAL BIAS FIELD, DAY4 THREE-WAY DISTRIBUTION, DAY5 neutral MOTION CONTROL, DAY6 Memory Signature(OBSERVE / MEMORY HOLD / RECALL / MEMORY RECONSTRUCTION)를 적용함.
+- Final Report Premium 완료: FinalAnalysisScreen, SevenDayChangeMap, completion motion, reduced-motion 대응.
+- Share Card 완료: FinalShareCard와 최종 text share fallback.
+- Unfinished UI cleanup 완료: disabled `오늘의 추가 검사 보기`, `상세 분석 보기`, `준비 중` placeholder는 runtime에 존재하지 않음.
+- Simulated First-user polish 완료: HOME/INTRO visible 7-day journey와 Basic `BASELINE · 1차 분석 / DAY 1 / 7` framing 유지.
+- DAY5 RUNNING은 condition identity를 노출하지 않으며 motion protocol(RAF, piecewise speed, target, raw, stop timing)은 변경하지 않음.
+- Native / Apps in Toss 대응은 마지막 단계로 보류함.
+- Next: **사용자 검토 후 commit/push, 이어서 human first-user test / Native QA 재개**
+
+- 단계 번호: 27.1
+- 단계 이름: Final Hero Calibration Summary + DAY7 Targeted E2E
+- 상태: 완료
+- 다음: Release Fast Track
+
+## 27.1 검증
+
+- Final hero에 실제 selected Ability와 engine `preFinalScores → scores`, signed 변화량을 추가함
+- UI는 80/20 또는 ±6을 재계산하지 않으며 selector/final protocol/raw/persistence/share 계약은 불변
+- DAY7 Intro/READY CTA를 presentation-only로 `마지막 보정 확인하기` / `측정 시작`으로 구분
+- Time/Center/Balance/Control/Focus 5-arm selected-only regression 추가
+- 실제 Chrome Focus/Time deterministic selector E2E와 320/360/390/412/430 responsive 캡처 완료
+- 모든 viewport horizontal overflow 0; Focus 68→69(+1), Time 95→89(-6) hero 확인
+- 76 files / 417 tests, typecheck, lint, build:web, build:ait, build, `git diff --check` 통과
+
 - 단계 번호: 21.8
 - 단계 이름: DAY1 Full Visual Flow QA + Basic Analysis 재평가
 - 상태: 완료
@@ -663,3 +690,184 @@ DAY 6 exact config, exposure/blank/recall lifecycle, matching, Focus-only V2 mod
 - [x] 73 files / 406 tests 유지
 - [x] Current: 20.6 Final Art Direction Pass 완료
 - [ ] Next: Apps in Toss Native QA
+
+## 29.0 Retention & Completion Polish
+
+- [x] DAY1 discovery / `DAY 1 / 7` / DAY2 teaser
+- [x] DAY2~6 공통 discovery / progress / next teaser
+- [x] DAY6 generic DAY7 final calibration teaser
+- [x] DAY7 completion reward, next teaser 없음
+- [x] Returning HOME 완료 DAY와 다음 unlock 상태
+- [x] INTRO accessibility summary의 7일 흐름
+- [x] Basic/Final share payload 변경 불필요 판정
+- [x] presentation-only 경계와 전체 자동 회귀 검증
+- [ ] 360×800 / 412×786 browser narrative sequence 수동 확인
+- [ ] Next: Brand + Share + Release Polish
+
+## 30.0 Brand + Share + Release Polish
+
+- [x] Apps in Toss primaryColor `#103F38`
+- [x] HTML `lang="ko"`, title `쓸능검`
+- [x] template purple favicon 제거 및 web identity favicon 적용
+- [x] Basic share DAY1 명시와 Final 표현 차단
+- [x] Final share 7일 완료 payload 유지
+- [x] share internal identifier 금지 회귀 확대
+- [x] deep link P2 optional 유지
+- [x] production QA/debug/localhost/source-map contamination 0
+- [x] 77 files / 418 tests 및 전체 release build 통과
+- [ ] Console 최종 앱 아이콘 준비/업로드
+- [ ] Console metadata, Sandbox, native Storage/Share/Back/Safe Area QA
+- [ ] Next: Native/Console Release
+
+## 31.0 Final 7-Day Change Map Polish
+
+- [x] DAY1 baseline / preFinal / final / selected Ability 실제 구조 감사
+- [x] Final 상단부 `7일 변화 지도` 배치
+- [x] 5개 Ability DAY1 → FINAL score와 delta 표시
+- [x] selected Ability에만 DAY7 보정 표시
+- [x] 기존 Calibration Summary의 DAY6까지 → Final 보조 비교 유지
+- [x] chart dependency 및 UI score replay 없음
+- [x] accessible change description 및 positive/negative/neutral 회귀
+- [x] 78 files / 420 tests, lint warning 0, 전체 build 통과
+- [ ] Native 360/412 Final report visual QA
+- [ ] Next: Native/Console Release
+
+## 32.1 Final App Icon 적용
+
+- [x] 사용자 원본 `h-logo.png` 존재·형식·dimensions·alpha·크기 확인
+- [x] 원본 무변형 프로젝트 복사 및 SHA-256 동일성 확인
+- [x] 256/128/64/48 preview legibility QA
+- [x] 중앙 `ㅎ`와 emerald/gold identity 작은 크기 유지 판정
+- [x] 기존 단순 favicon 유지 판정
+- [x] Console icon source 후보 기록
+- [ ] Console 현재 업로드 규격 확인 및 필요 시 원본 기반 정확한 export
+
+## 33.0 First-user UX Audit
+
+- [x] 설명 없는 moderator protocol 문서화
+- [x] fresh / Basic / DAY2~7 Memory fixture launcher 준비
+- [x] participant record와 common issue/KPI summary 준비
+- [x] 8개 stage 및 entry module Vite HTTP 200 smoke test
+- [x] production unlock/storage/scoring/product code 불변
+- [x] production dist QA contamination 0
+- [ ] 실제 first-user 3~5명 모집 및 무설명 세션
+- [ ] HOME/7-day/repetition/Final/Change Map/Share/Icon KPI 집계
+- [ ] 공통 지적 P0~P3 분류 후 A/B/C 판정
+
+## 34.0 Final Completion Motion Polish
+
+- [x] Final mount 기반 presentation-only motion
+- [x] technical line / completion / seal / overall-profile / calibration / Change Map 500ms 이내 reveal
+- [x] score count-up 및 marker interpolation 없음
+- [x] splash/overlay/interaction block/새 completion state 없음
+- [x] reduced-motion 즉시 settled content
+- [x] Final-only namespace, DAY1~6 measurement contamination 0
+- [x] selected/preFinal/final/Change Map/Share/reload/Basic 비적용 회귀
+- [x] 78 files / 421 tests, lint warning 0, 전체 build 통과
+- [ ] Native 320/360/390/412/430 timing/overflow/performance visual QA
+
+## 35.0 Signature Screen Audit
+
+- [x] DAY3 Decorated RUNNING structural signature PASS, 수정 없음
+- [x] DAY4 Three-way RUNNING structural signature PASS, 수정 없음
+- [x] DAY6 Recall RUNNING structural signature PASS, 수정 없음
+- [x] DAY5 RUNNING에 arm-neutral variable-motion badge와 technical frame만 targeted polish
+- [x] DAY3 center cue 0 / DAY4 thirds guide 0 / DAY5 speed·transition cue 0 / DAY6 ghost target 0
+- [x] 79 files / 422 tests, lint warning 0, 전체 build 통과
+- [ ] Native 360/412 four-screen screenshot/contact-sheet 비교
+
+## 41.0 Unfinished UI Cleanup
+
+- [x] HOME disabled 추가 검사 overlay DOM/CSS 제거
+- [x] HOME poster 내부 추가 검사 문구·밑줄·화살표 targeted 제거
+- [x] Basic disabled 상세 분석 CTA·준비 중 copy 제거
+- [x] HOME primary action과 Basic 공유/Home·DAY1 progress·DAY2 teaser 유지
+- [x] obsolete accessibility description 및 focus target 제거
+- [x] runtime unfinished string/dead CTA 재감사
+- [x] 80 files / 434 tests, lint warning 0, web/AIT/전체 build 통과
+- [ ] Native 360×800 / 412×786 HOME·Basic 최종 visual QA
+- [ ] Next: 42.0 Final Share Image Card
+
+## 42.0 Final Share Image Card
+
+- [x] Final deterministic share-card data model
+- [x] Overall / Profile / 앱 내 대표 자격 / 대표 변화 압축
+- [x] existing positive-update metric 우선, selected Final Ability calibration fallback
+- [x] positive / negative / zero 중립 표현
+- [x] 4:5 deep emerald precision-report preview
+- [x] 실제 0~100 marker mapping 및 accessible text fallback
+- [x] internal identifier 0, Basic card 0, Final reload 동일 카드
+- [x] SDK 3.0.2 message-only share 확인 및 기존 text fallback 유지
+- [x] dependency/scoring/storage/finalRecord/share payload 불변
+- [x] 81 files / 439 tests, lint warning 0, web/AIT/전체 build 통과
+- [ ] Native 320/360/390/412/430 visual QA
+- [ ] 1080×1350 PNG export pipeline은 별도 browser/native 환경에서 검증
+- [ ] Next: Native + User Test
+
+## 43.0 Native Release Candidate QA
+
+- [x] latest `.ait` rebuild 및 size/SHA-256/deploymentId 고정
+- [x] typecheck/lint/439 tests/web/AIT/combined build/diff check
+- [x] local native-facing contract test inventory 감사
+- [x] Android ADB/device, iOS, Sandbox auth/context availability 감사
+- [x] persistent native QA matrix 작성
+- [ ] Android Apps in Toss Sandbox launch
+- [ ] force-close Storage restore A/B/C
+- [ ] Time/Control/DAY6 background–foreground
+- [ ] native Share cancel/retry/rapid tap/send
+- [ ] HOME/INTRO/READY/RUNNING/RESULT/Analysis/Final back behavior
+- [ ] safe area/touch/font scaling/rotation/offline
+- [ ] DAY3–7 signature screenshots and DAY6 slow-motion timing
+- [ ] DAY7 Time + Focus paths, Final motion/long scroll/share card
+- [ ] Sandbox console/runtime error audit
+- [ ] Native evidence 기반 A/B/C/D 판정
+
+## 43.1 Android Sandbox Native Execution
+
+- [x] RC size/SHA-256/deploymentId 동일성 확인
+- [x] WSL ADB device gate 확인
+- [x] Windows adb/emulator/process availability 확인
+- [x] device list 0에 따라 product mutation 없이 environment-blocked 기록
+- [ ] Windows physical device/emulator 실행
+- [ ] Windows `adb devices`에 `<serial> device` 확인
+- [ ] Apps in Toss Sandbox 설치·인증·deployment 실행
+- [ ] 43.1 native-only matrix 재개
+
+## 43.1A Android Native QA Environment Bring-up
+
+- [x] DueGuard 당시 test environment 확인
+- [x] 기존 `DueGuard_Test` AVD 발견·부팅
+- [x] `emulator-5554 device` ADB 연결
+- [x] Android 15/API 35, 1080×2400, 420 dpi 기록
+- [x] Sandbox package/version/launch 확인
+- [x] Sandbox login screen 실제 screenshot 확보
+- [x] product/config/RC artifact 불변
+- [ ] 사용자 Console login 및 Toss 인증
+- [ ] 현재 deployment 실행 후 HOME render
+- [ ] 43.1 Native Matrix 재개
+
+## 43.1B Android Sandbox Native Matrix
+
+- [x] `DueGuard_Test` ADB/boot 상태 확인
+- [x] Sandbox actual activity 및 screenshot 확인
+- [x] 인증 완료 가정 불일치 확인: `AppsInTossLoginActivity`
+- [x] credential/product/RC mutation 없이 matrix 중단
+- [ ] Console Email/Password login
+- [ ] Toss 본인 인증
+- [ ] current activity가 login이 아님을 확인
+- [ ] 동일 RC로 Native matrix 실행
+
+## 45.0 Targeted First-User Polish
+
+- [x] HOME visible 7-day journey
+- [x] INTRO visible DAY1→DAY2–6→DAY7 journey
+- [x] Basic hero baseline / 1차 분석 / DAY 1/7 framing
+- [x] Overall/Profile/대표 자격 및 Final structure 유지
+- [x] DAY5 RUNNING condition identity text/accessibility 제거
+- [x] DAY5 READY 안내, RESULT/Analysis condition 공개 유지
+- [x] DAY5 raw/config/target/timing/navigation/storage/scoring 불변
+- [x] DAY7 `evidence` → `측정 근거`
+- [x] 5-persona simulated targeted re-QA
+- [x] QA harness `artifacts/first-user-polish-45.0/`
+- [ ] Chrome 360×800 / 390×844 / 412×786 actual recapture (usage-limit blocked)
+- [ ] Human 3~5명 first-user validation

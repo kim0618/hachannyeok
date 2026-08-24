@@ -31,7 +31,7 @@ describe('Day2AnalysisScreen', () => {
   });
   it('eligible tendency의 late 방향과 baseline score 변화를 표시한다', () => {
     const values = renderResult(makeRecord([3000, 3000], [4100, 4100]));
-    expect(screen.getByText(/시간이 조금 늦어지는 편/)).toBeInTheDocument();
+    expect(screen.getAllByText(/시간이 조금 늦어지는 편/)).toHaveLength(2);
     expect(screen.getByText(/평소보다 늦게/)).toBeInTheDocument();
     expect(screen.getByText('기존 TIME').nextElementSibling).toHaveTextContent(String(values.before.scores.time));
     expect(screen.getByText('현재 TIME').nextElementSibling).toHaveTextContent(String(values.after.scores.time));
@@ -42,7 +42,7 @@ describe('Day2AnalysisScreen', () => {
     const values = renderResult(record);
     const tendency = values.after.tendencies.find((item) => item.key === 'distractionSensitivity');
     expect(tendency).toMatchObject({ eligible: true, direction: 'degraded' });
-    expect(screen.getByText('방해가 있으면 오차 폭이 커지는 편')).toBeInTheDocument();
+    expect(screen.getAllByText('방해가 있으면 오차 폭이 커지는 편')).toHaveLength(2);
     expect(screen.getByText(/한쪽 방향은 뚜렷하지 않았어요/)).toBeInTheDocument();
     expect(screen.getByText('평소보다 오차 폭이 커졌어요.')).toBeInTheDocument();
     expect(screen.queryByText(/평소보다 빨리 누르는 방향/)).not.toBeInTheDocument();
@@ -52,12 +52,12 @@ describe('Day2AnalysisScreen', () => {
   });
   it('eligible tendency의 earlier 방향을 유지한다', () => {
     renderResult(makeRecord([3000, 3000], [1900, 1900]));
-    expect(screen.getByText(/시간이 조금 빨라지는 편/)).toBeInTheDocument();
+    expect(screen.getAllByText(/시간이 조금 빨라지는 편/)).toHaveLength(2);
     expect(screen.getByText(/평소보다 빨리/)).toBeInTheDocument();
   });
   it('threshold 미달이면 fallback과 점수 유지 문구를 표시한다', () => {
     const values = renderResult(makeRecord([3000, 3000], [3000, 3000]));
-    expect(screen.getByText(/거의 그대로/)).toBeInTheDocument();
+    expect(screen.getAllByText(/거의 그대로/)).toHaveLength(2);
     expect(screen.getByText('이번 측정에서는 뚜렷한 편향이 확인되지 않았어요.')).toBeInTheDocument();
     if (values.before.scores.time === values.after.scores.time) expect(screen.getByText('시간 감각 점수는 그대로 유지됐어요.')).toBeInTheDocument();
   });

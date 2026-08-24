@@ -1,4 +1,5 @@
 import { type CSSProperties } from 'react';
+import { DailyDiscoveryPanel } from '../../components/DailyDiscoveryPanel';
 import { PrimaryButton } from '../../components/PrimaryButton';
 import type { TimeConditionTrial } from '../../domain/assessment/trials';
 import type { DerivedAnalysis } from '../../domain/scoring/types';
@@ -74,6 +75,7 @@ export function Day2AnalysisScreen({ record, before, after, saveStatus, onRetryS
       <section className="day2-analysis-delta"><div><p>조건 차이 <small>(DISTRACTED − PLAIN)</small></p><strong>{signedSeconds(delta)}</strong></div><div><p>{deltaCopy}</p><span>{delta > 0 ? '오차 증가' : delta < 0 ? '오차 감소' : '차이 없음'}</span></div></section>
       <section className="day2-analysis-interpretation"><span aria-hidden="true">◎</span><div><h2>짧은 해석</h2><strong>{hero}</strong><p>{interpretation}</p>{smallDifference && <small>이번 조건 차이는 {preciseSeconds(Math.abs(delta))}로 작았어요.</small>}<small className="signed-detail">기본 signed error {signedSeconds(plainSigned)} · 방해 {signedSeconds(distractedSigned)}</small></div></section>
       <section className="day2-analysis-score"><h2>TIME 능력 변화</h2><div><span aria-hidden="true">◷</span><dl><div><dt>기존 TIME</dt><dd>{before.scores.time}</dd></div><i aria-hidden="true">→</i><div><dt>현재 TIME</dt><dd>{after.scores.time}</dd></div><strong aria-label={`변화량 ${change > 0 ? '+' : ''}${change}`}>{change > 0 ? '+' : ''}{change}</strong><p>조건 비교 결과를 반영한 기존 scoring 결과입니다.<br />(±8 범위 내 조정)</p></dl></div>{!scoreChanged && <small>시간 감각 점수는 그대로 유지됐어요.</small>}{neutralDegradation && <small>평소보다 오차 폭이 커졌어요.</small>}</section>
+      <DailyDiscoveryPanel day={2} totalDays={7} insight={hero} nextTeaser="DAY 3에는 시각 정보가 있을 때 중심 판단이 어떻게 달라지는지 확인해요." />
       {saveStatus === 'saving' && <p role="status" className="storage-status">추가 분석을 기기에 저장하고 있습니다.</p>}{saveStatus === 'failed' && <div role="alert" className="storage-warning"><p>추가 분석을 저장하지 못했습니다. 측정 결과는 그대로 유지됩니다.</p>{onRetrySave && <button className="secondary-button" onClick={onRetrySave}>다시 저장</button>}</div>}
       <div className="day2-analysis-actions"><PrimaryButton disabled={!onHome} onClick={onHome}>분석 결과 확인 완료</PrimaryButton>{onAnalysis && <button className="secondary-button" onClick={onAnalysis}>업데이트된 분석서 보기</button>}<p>모든 데이터는 안전하게 저장되며 분석에만 사용됩니다.</p></div>
     </main>

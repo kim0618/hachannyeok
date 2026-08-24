@@ -10,9 +10,14 @@ const analysis = deriveAnalysis({ schemaVersion: 1, baseline: baselineFixture, d
 describe('BasicAnalysisScreen', () => {
   it('실제 분석 score/profile/자격/5개 능력/측정 근거를 표시하고 engine key는 숨긴다', () => {
     expect(analysis.ok).toBe(true);
-    render(<BasicAnalysisScreen baseline={baselineFixture} analysis={analysis} onRestart={() => undefined} onHome={() => undefined} />);
+    const view=render(<BasicAnalysisScreen baseline={baselineFixture} analysis={analysis} onRestart={() => undefined} onHome={() => undefined} />);
+    expect(view.container.querySelector('.final-completion-motion')).not.toBeInTheDocument();
     if (!analysis.ok) return;
     expect(screen.getByText('쓸능검 · 기본 분석')).toBeInTheDocument();
+    expect(screen.getByText('BASELINE · 1차 분석')).toBeVisible();
+    expect(screen.getAllByText('DAY 1 / 7')[0]).toBeVisible();
+    expect(screen.getByText(/오늘은 5가지 기본 능력의 기준점을 만들었습니다/)).toBeVisible();
+    expect(screen.getByText(/남은 조건 측정 후 최종 결과가 완성됩니다/)).toBeVisible();
     expect(screen.getByText('종합 쓸능검')).toBeInTheDocument();
     expect(screen.getByText(String(analysis.value.overallScore))).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: profileDisplay(analysis.value.profile)! })).toBeInTheDocument();
@@ -37,6 +42,7 @@ describe('BasicAnalysisScreen', () => {
     expect(document.querySelector('.certification-hero')?.firstElementChild).toHaveClass('certification-seal');
     expect(document.querySelector('.certification-copy > strong')).toHaveTextContent('화면중앙감별사 특급');
     expect(document.querySelector('.analysis-hero .overall-score')).toBeInTheDocument();
+    expect(document.querySelector('.final-share-card')).not.toBeInTheDocument();
   });
   it('baseline 누락과 insufficient evidence를 명시적으로 처리한다', () => {
     const view = render(<BasicAnalysisScreen onRestart={() => undefined} onHome={() => undefined} />);
@@ -66,10 +72,13 @@ describe('BasicAnalysisScreen', () => {
     const second = render(<BasicAnalysisScreen baseline={baselineFixture} analysis={analysis} onRestart={() => undefined} onHome={() => undefined} />);
     expect(second.container.textContent).toBe(firstText);
   });
-  it('상세 분석 CTA를 준비 중 상태로 명확히 표시한다', () => {
+  it('DAY1 진행 정보와 다음 조건을 유지하고 미완성 상세 CTA는 표시하지 않는다', () => {
     render(<BasicAnalysisScreen baseline={baselineFixture} analysis={analysis} onRestart={() => undefined} onHome={() => undefined} />);
-    expect(screen.getByRole('button', { name: '상세 분석 보기' })).toBeDisabled();
-    expect(screen.getByText('상세 분석은 준비 중입니다.')).toBeInTheDocument();
+    expect(screen.getAllByText('DAY 1 / 7')).toHaveLength(2);
+    expect(screen.getByText(/DAY 2에는 움직임이 있을 때/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '홈으로' })).toBeEnabled();
+    expect(screen.queryByRole('button', { name: '상세 분석 보기' })).not.toBeInTheDocument();
+    expect(screen.queryByText('상세 분석은 준비 중입니다.')).not.toBeInTheDocument();
   });
   it('활성 Basic CTA가 실제 presentation message를 adapter에 전달한다', async () => {
     expect(analysis.ok).toBe(true);

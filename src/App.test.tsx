@@ -164,7 +164,9 @@ describe('최초 사용자 진입 흐름', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: '기본 분석 보기' }));
     expect(screen.getByText('종합 쓸능검')).toBeInTheDocument();
-    expect(screen.getAllByText('기본 분석 완료')).toHaveLength(2);
+    expect(screen.getByText('기본 분석 완료')).toBeInTheDocument();
+    expect(screen.getByText('오늘 새로 발견한 것')).toBeInTheDocument();
+    expect(screen.getAllByText('DAY 1 / 7')).toHaveLength(2);
     expect(screen.queryByText('기본 분석 준비')).not.toBeInTheDocument();
   });
 

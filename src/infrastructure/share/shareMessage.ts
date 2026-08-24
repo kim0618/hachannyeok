@@ -16,7 +16,7 @@ function presentation(value: DerivedAnalysis) {
 export function basicShareMessage(value: DerivedAnalysis): string {
   const result = presentation(value);
   return [
-    '[쓸능검 기본 분석]',
+    '[쓸능검 기본 분석 · DAY 1]',
     `종합 쓸능검 ${result.overall}점`,
     result.profile,
     `주요 자격 · ${result.certification}`,
